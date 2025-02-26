@@ -6,6 +6,7 @@ import VerifyPage from "./pages/Auth/VerifyPage"; // optional
 import ForgotPage from "./pages/Auth/ForgotPage";
 import ResetPage from "./pages/Auth/ResetPage";
 import LogoutPage from "./pages/Auth/LogoutPage";
+import FinancesPage from "./pages/Finances/FinancesPage";
 
 function App() {
   return (
@@ -16,6 +17,7 @@ function App() {
       <Route path="/auth/forgot" element={<ForgotPage />} />
       <Route path="/auth/reset" element={<ResetPage />} />
       <Route path="/auth/logout" element={<LogoutPage />} />
+      <Route path="/finances" element={<FinancesPage />} />
       <Route path="*" element={<div>Not Found</div>} />
     </Routes>
   );
