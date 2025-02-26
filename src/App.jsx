@@ -5,6 +5,7 @@ import LoginPage from "./pages/Auth/LoginPage";
 import VerifyPage from "./pages/Auth/VerifyPage"; // optional
 import ForgotPage from "./pages/Auth/ForgotPage";
 import ResetPage from "./pages/Auth/ResetPage";
+import LogoutPage from "./pages/Auth/LogoutPage";
 
 function App() {
   return (
@@ -14,6 +15,7 @@ function App() {
       <Route path="/auth/verify/:token" element={<VerifyPage />} />
       <Route path="/auth/forgot" element={<ForgotPage />} />
       <Route path="/auth/reset" element={<ResetPage />} />
+      <Route path="/auth/logout" element={<LogoutPage />} />
       <Route path="*" element={<div>Not Found</div>} />
     </Routes>
   );
