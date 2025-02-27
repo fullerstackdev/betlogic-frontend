@@ -1,63 +1,43 @@
 // src/components/TopNavbar.jsx
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { FiMenu, FiMessageSquare, FiBell, FiChevronDown } from "react-icons/fi";
-import userAvatar from "../assets/images/users/user1.jpg"; // Or real user avatar if you store it.
+import userAvatar from "../assets/images/users/user1.jpg";
 
 function TopNavbar({ onToggleSidebarDesktop, onToggleSidebarMobile }) {
   const [profileOpen, setProfileOpen] = useState(false);
-  const [userName, setUserName] = useState("User Name"); // default
+  const [userName, setUserName] = useState("User");
 
   useEffect(() => {
-    // Read user’s first/last from localStorage, or do a quick fetch if needed.
     const fn = localStorage.getItem("firstName") || "";
     const ln = localStorage.getItem("lastName") || "";
-    if (fn || ln) {
-      setUserName(`${fn} ${ln}`.trim() || "User");
-    } else {
-      setUserName("User"); // fallback
-    }
+    const combined = (fn + " " + ln).trim();
+    if (combined) setUserName(combined);
   }, []);
 
   return (
     <div className="relative z-[999] flex items-center justify-between h-12 px-4 bg-[var(--color-dark)] border-b border-[var(--color-border)] text-[var(--color-text)]">
-      {/* LEFT SECTION: Sidebar Toggle + Search */}
+      {/* LEFT: Sidebar toggles + optional search */}
       <div className="flex items-center">
-        {/* Mobile hamburger (< md) */}
+        {/* MOBILE HAMBURGER */}
         <button
           className="md:hidden hover:text-[var(--color-primary)] mr-2"
           onClick={onToggleSidebarMobile}
         >
           <FiMenu size={20} />
         </button>
-        {/* Desktop collapse toggle (hidden < md) */}
+        {/* DESKTOP COLLAPSE */}
         <button
           className="hidden md:inline hover:text-[var(--color-primary)] mr-2"
           onClick={onToggleSidebarDesktop}
         >
           <FiMenu size={20} />
         </button>
-        {/* Optional search bar */}
-        <div className="hidden sm:block">
-          <input
-            type="text"
-            placeholder="Search & Enter"
-            className="
-              bg-[var(--color-panel)]
-              border border-[var(--color-border)]
-              rounded
-              px-2 py-1
-              text-sm
-              placeholder:text-gray-400
-              focus:outline-none
-              focus:border-[var(--color-primary)]
-            "
-          />
-        </div>
+        {/* search bar if needed */}
       </div>
 
-      {/* RIGHT SECTION: Icons + Profile */}
+      {/* RIGHT: messages, notifications, profile */}
       <div className="flex items-center gap-4">
-        {/* Messages Icon (stub) */}
+        {/* Messages icon */}
         <div className="relative">
           <button className="hover:text-[var(--color-primary)]">
             <FiMessageSquare size={20} />
@@ -67,7 +47,7 @@ function TopNavbar({ onToggleSidebarDesktop, onToggleSidebarMobile }) {
           </span>
         </div>
 
-        {/* Notifications Icon (stub) */}
+        {/* Notifs icon */}
         <div className="relative">
           <button className="hover:text-[var(--color-primary)]">
             <FiBell size={20} />
@@ -108,7 +88,6 @@ function TopNavbar({ onToggleSidebarDesktop, onToggleSidebarMobile }) {
               <button
                 className="block w-full text-left px-2 py-1 hover:bg-gray-200"
                 onClick={() => {
-                  // Simple logout
                   localStorage.clear();
                   window.location.href = "/auth/login";
                 }}

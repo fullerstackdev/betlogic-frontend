@@ -11,27 +11,23 @@ function LoginPage() {
     e.preventDefault();
     setError("");
     try {
-      // Example: "https://betlogic-backend.onrender.com/api"
-      const base = import.meta.env.VITE_API_BASE; 
+      const base = import.meta.env.VITE_API_BASE; // e.g. https://betlogic-backend.onrender.com/api
       const res = await fetch(`${base}/auth/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(form),
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Login failed");
-
-      // Store token & role
-      localStorage.setItem("token", data.token);
-      // If your back-end returns {role: "..."} do:
-      if (data.role) {
-        localStorage.setItem("role", data.role);
-      } else {
-        // If no role is returned, default user
-        localStorage.setItem("role", "user");
+      if (!res.ok) {
+        throw new Error(data.error || "Login failed");
       }
+      // data => { message, token, role, firstName, lastName }
+      localStorage.setItem("token", data.token);
+      localStorage.setItem("role", data.role || "user");
+      localStorage.setItem("firstName", data.firstName || "");
+      localStorage.setItem("lastName", data.lastName || "");
 
-      // If the user is admin -> /admin, else -> /
+      // redirect based on role
       if (data.role === "admin" || data.role === "superadmin") {
         navigate("/admin");
       } else {
@@ -43,17 +39,14 @@ function LoginPage() {
   }
 
   return (
-    <div style={{ maxWidth: 400, margin: "0 auto" }}>
-      <h2 className="text-2xl mb-4">Login</h2>
-      {error && <p className="text-red-400">{error}</p>}
-
-      <form onSubmit={handleSubmit} className="space-y-2">
+    <div style={{ maxWidth: 400, margin: "auto" }}>
+      <h2>Login</h2>
+      {error && <p style={{ color: "red" }}>{error}</p>}
+      <form onSubmit={handleSubmit}>
         <div>
           <label>Email:</label>
           <input
             type="email"
-            className="border w-full p-2 bg-gray-700 text-white"
-            required
             value={form.email}
             onChange={(e) => setForm({ ...form, email: e.target.value })}
           />
@@ -62,22 +55,14 @@ function LoginPage() {
           <label>Password:</label>
           <input
             type="password"
-            className="border w-full p-2 bg-gray-700 text-white"
-            required
             value={form.password}
             onChange={(e) => setForm({ ...form, password: e.target.value })}
           />
         </div>
-        <button type="submit" className="btn w-full mt-3">
-          Log In
-        </button>
+        <button type="submit">Log In</button>
       </form>
-
-      <p className="mt-4 text-sm">
-        Don’t have an account?{" "}
-        <a href="/auth/register" className="text-blue-400 underline">
-          Register
-        </a>
+      <p style={{ marginTop: "1rem" }}>
+        <a href="/auth/register">Register</a> if you have no account.
       </p>
     </div>
   );

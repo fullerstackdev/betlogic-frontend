@@ -1,5 +1,5 @@
 // src/components/Sidebar.jsx
-import React, { useEffect, useState } from "react";
+import React, { useState, useEffect } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
 import {
   FiHome,
@@ -13,14 +13,13 @@ import userAvatar from "../assets/images/users/user1.jpg";
 
 function Sidebar({ collapsed, openMobile, onCloseMobile }) {
   const navigate = useNavigate();
-  const [userName, setUserName] = useState("User Name");
+  const [userName, setUserName] = useState("User");
 
   useEffect(() => {
     const fn = localStorage.getItem("firstName") || "";
     const ln = localStorage.getItem("lastName") || "";
-    if (fn || ln) {
-      setUserName(`${fn} ${ln}`.trim() || "User");
-    }
+    const combined = (fn + " " + ln).trim();
+    if (combined) setUserName(combined);
   }, []);
 
   const navItems = [
@@ -49,7 +48,7 @@ function Sidebar({ collapsed, openMobile, onCloseMobile }) {
         <img src={logo} alt="BetLogic Logo" className="h-8 w-auto" />
       </div>
 
-      {/* NAVIGATION */}
+      {/* NAV */}
       <ul className="list-none m-0 p-0 flex-1 overflow-auto">
         {navItems.map((item) => (
           <li key={item.to}>
@@ -70,7 +69,7 @@ function Sidebar({ collapsed, openMobile, onCloseMobile }) {
         ))}
       </ul>
 
-      {/* PROFILE SECTION */}
+      {/* PROFILE */}
       <div
         className="border-t border-[var(--color-border)] px-4 py-3 flex items-center cursor-pointer hover:bg-[var(--color-mid)]"
         onClick={() => navigate("/profile")}
@@ -90,12 +89,9 @@ function Sidebar({ collapsed, openMobile, onCloseMobile }) {
     </div>
   );
 
-  // MOBILE OVERLAY
+  // Mobile overlay
   const mobileSidebar = openMobile && (
-    <div
-      className="md:hidden fixed inset-0 z-50 flex"
-      onClick={onCloseMobile}
-    >
+    <div className="md:hidden fixed inset-0 z-50 flex" onClick={onCloseMobile}>
       <div
         className="bg-[var(--color-dark)] text-gray-300 w-64 flex flex-col"
         onClick={(e) => e.stopPropagation()}
@@ -103,7 +99,6 @@ function Sidebar({ collapsed, openMobile, onCloseMobile }) {
         <div className="flex items-center justify-center px-4 py-4 border-b border-[var(--color-border)]">
           <img src={logo} alt="BetLogic Logo" className="h-8 w-auto" />
         </div>
-
         <ul className="list-none m-0 p-0 flex-1 overflow-auto">
           {navItems.map((item) => (
             <li key={item.to}>
@@ -122,7 +117,6 @@ function Sidebar({ collapsed, openMobile, onCloseMobile }) {
             </li>
           ))}
         </ul>
-
         <div
           className="border-t border-[var(--color-border)] px-4 py-3 flex items-center cursor-pointer hover:bg-[var(--color-mid)]"
           onClick={() => {
@@ -141,7 +135,6 @@ function Sidebar({ collapsed, openMobile, onCloseMobile }) {
           </div>
         </div>
       </div>
-
       <div className="flex-1 bg-black bg-opacity-50" />
     </div>
   );
@@ -155,3 +148,4 @@ function Sidebar({ collapsed, openMobile, onCloseMobile }) {
 }
 
 export default Sidebar;
+
