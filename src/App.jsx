@@ -11,6 +11,7 @@ import PromotionsPage from "./pages/Promotions/PromotionsPage";
 import PromotionDetailPage from "./pages/Promotions/PromotionDetailPage";
 import TasksPage from "./pages/Tasks/TasksPage";
 import BetsPage from "./pages/Bets/BetsPage";
+import CalendarPage from "./pages/Calendar/CalendarPage";
 
 function App() {
   return (
@@ -26,6 +27,7 @@ function App() {
       <Route path="/promotions/:promoId" element={<PromotionDetailPage />} />
       <Route path="/tasks" element={<TasksPage />} />
       <Route path="/bets" element={<BetsPage />} />
+      <Route path="/calendar" element={<CalendarPage />} />
       <Route path="*" element={<div>Not Found</div>} />
     </Routes>
   );
