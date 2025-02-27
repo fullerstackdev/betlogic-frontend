@@ -1,34 +1,56 @@
 import React from "react";
 import { Routes, Route } from "react-router-dom";
-import RegisterPage from "./pages/Auth/RegisterPage";
-import LoginPage from "./pages/Auth/LoginPage";
-import VerifyPage from "./pages/Auth/VerifyPage"; // optional
-import ForgotPage from "./pages/Auth/ForgotPage";
-import ResetPage from "./pages/Auth/ResetPage";
-import LogoutPage from "./pages/Auth/LogoutPage";
-import FinancesPage from "./pages/Finances/FinancesPage";
-import PromotionsPage from "./pages/Promotions/PromotionsPage";
-import PromotionDetailPage from "./pages/Promotions/PromotionDetailPage";
-import TasksPage from "./pages/Tasks/TasksPage";
-import BetsPage from "./pages/Bets/BetsPage";
-import CalendarPage from "./pages/Calendar/CalendarPage";
+import MainLayout from "./layouts/MainLayout";
+import AdminLayout from "./layouts/AdminLayout";
+
+// user pages
+import Dashboard from "./pages/Dashboard";
+import Finances from "./pages/Finances";
+import Promotions from "./pages/Promotions";
+import PromotionDetail from "./pages/PromotionDetail";
+import Tasks from "./pages/Tasks";
+import Bets from "./pages/Bets";
+import Messages from "./pages/Messages";
+import NotFound from "./pages/NotFound";
+import Calendar from "./pages/Calendar";
+import UserProfile from "./pages/UserProfile";
+import Notifications from "./pages/Notifications";
+
+// admin pages
+import ManageUsersPage from "./pages/admin/ManageUsersPage";
+import AdminFinancesPage from "./pages/admin/AdminFinancesPage";
+import AdminPromotionsPage from "./pages/admin/AdminPromotionsPage";
+import AdminTasksPage from "./pages/admin/AdminTasksPage";
+import AdminBetsPage from "./pages/admin/AdminBetsPage";
+import AdminMessagesPage from "./pages/admin/AdminMessagesPage";
 
 function App() {
   return (
     <Routes>
-      <Route path="/auth/register" element={<RegisterPage />} />
-      <Route path="/auth/login" element={<LoginPage />} />
-      <Route path="/auth/verify/:token" element={<VerifyPage />} />
-      <Route path="/auth/forgot" element={<ForgotPage />} />
-      <Route path="/auth/reset" element={<ResetPage />} />
-      <Route path="/auth/logout" element={<LogoutPage />} />
-      <Route path="/finances" element={<FinancesPage />} />
-      <Route path="/promotions" element={<PromotionsPage />} />
-      <Route path="/promotions/:promoId" element={<PromotionDetailPage />} />
-      <Route path="/tasks" element={<TasksPage />} />
-      <Route path="/bets" element={<BetsPage />} />
-      <Route path="/calendar" element={<CalendarPage />} />
-      <Route path="*" element={<div>Not Found</div>} />
+      {/* USER LAYOUT */}
+      <Route element={<MainLayout />}>
+        <Route path="/" element={<Dashboard />} />
+        <Route path="/finances" element={<Finances />} />
+        <Route path="/promotions" element={<Promotions />} />
+        <Route path="/promotions/:promoId" element={<PromotionDetail />} />
+        <Route path="/tasks" element={<Tasks />} />
+        <Route path="/bets" element={<Bets />} />
+        <Route path="/messages" element={<Messages />} />
+        <Route path="/calendar" element={<Calendar />} />
+        <Route path="/profile" element={<UserProfile />} />
+        <Route path="/notifications" element={<Notifications />} />
+      </Route>
+      <Route path="*" element={<NotFound />} />
+
+      {/* ADMIN LAYOUT */}
+      <Route path="/admin" element={<AdminLayout />}>
+        <Route path="users" element={<ManageUsersPage />} />
+        <Route path="finances" element={<AdminFinancesPage />} />
+        <Route path="promotions" element={<AdminPromotionsPage />} />
+        <Route path="tasks" element={<AdminTasksPage />} />
+        <Route path="bets" element={<AdminBetsPage />} />
+        <Route path="messages" element={<AdminMessagesPage />} />
+      </Route>
     </Routes>
   );
 }
