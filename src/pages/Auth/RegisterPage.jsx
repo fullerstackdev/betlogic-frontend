@@ -4,28 +4,45 @@ import { useNavigate } from "react-router-dom";
 
 function RegisterPage() {
   const navigate = useNavigate();
-  const [form, setForm] = useState({ email: "", password: "" });
+  const [form, setForm] = useState({
+    firstName: "",
+    lastName: "",
+    email: "",
+    password: "",
+  });
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
   async function handleSubmit(e) {
     e.preventDefault();
     setError("");
+    setLoading(true);
 
     try {
+      // Send the user’s data to your back-end endpoint
       const res = await fetch(`${import.meta.env.VITE_API_BASE}/auth/register`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(form),
+        body: JSON.stringify({
+          email: form.email,
+          password: form.password,
+          firstName: form.firstName,
+          lastName: form.lastName,
+        }),
       });
+
       const data = await res.json();
       if (!res.ok) {
         throw new Error(data.error || "Registration failed");
       }
 
-      // Some back-ends return a token on register, some do not.
-      // If not, just navigate to /auth/login:
+      // If your back end sends a success message
+      // but doesn't auto-login, we just navigate to login:
+      setLoading(false);
+      alert("Registration successful! Check your email for verification link.");
       navigate("/auth/login");
     } catch (err) {
+      setLoading(false);
       setError(err.message);
     }
   }
@@ -36,6 +53,26 @@ function RegisterPage() {
       {error && <p style={{ color: "red" }}>{error}</p>}
 
       <form onSubmit={handleSubmit} className="space-y-2">
+        <div>
+          <label>First Name:</label>
+          <input
+            type="text"
+            value={form.firstName}
+            onChange={(e) => setForm({ ...form, firstName: e.target.value })}
+            className="border w-full p-2 bg-[var(--color-dark)] text-white"
+            required
+          />
+        </div>
+        <div>
+          <label>Last Name:</label>
+          <input
+            type="text"
+            value={form.lastName}
+            onChange={(e) => setForm({ ...form, lastName: e.target.value })}
+            className="border w-full p-2 bg-[var(--color-dark)] text-white"
+            required
+          />
+        </div>
         <div>
           <label>Email:</label>
           <input
@@ -56,8 +93,8 @@ function RegisterPage() {
             required
           />
         </div>
-        <button type="submit" className="btn w-full mt-2">
-          Register
+        <button type="submit" className="btn w-full mt-2" disabled={loading}>
+          {loading ? "Registering..." : "Register"}
         </button>
       </form>
 
