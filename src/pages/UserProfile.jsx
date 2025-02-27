@@ -1,18 +1,20 @@
+// src/pages/UserProfile.jsx
 import React from "react";
 
 function UserProfile() {
-  const user = {
-    name: "John Deo",
-    email: "john.deo@betlogic.com",
-    joined: "2025-07-15",
-    role: "User",
-    phone: "(555) 555-1234",
-    address: "123 Betting St, Las Vegas, NV",
-  };
+  const firstName = localStorage.getItem("firstName") || "";
+  const lastName = localStorage.getItem("lastName") || "";
+  const role = localStorage.getItem("role") || "user";
+  //const email = localStorage.getItem("email") || "";
+  // joined date not tracked yet, phone / address not tracked. 
+  // If you want them, we must store them or fetch from an endpoint.
+
+  const fullName = (firstName + " " + lastName).trim();
 
   return (
     <div className="space-y-4">
       <h2 className="text-2xl font-bold mb-4">My Profile</h2>
+
       <div className="card grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
           <img
@@ -20,17 +22,16 @@ function UserProfile() {
             alt="Profile"
             className="rounded mb-2"
           />
-          <div className="font-bold text-xl">{user.name}</div>
-          <div className="text-sm text-muted">Role: {user.role}</div>
-          <div className="text-sm text-muted">
-            Joined on: {new Date(user.joined).toLocaleDateString()}
-          </div>
+          <div className="font-bold text-xl">{fullName || "Unnamed User"}</div>
+          <div className="text-sm text-muted">Role: {role}</div>
+          {/* joined or creation date not in localStorage. Could skip. */}
         </div>
 
         <div className="space-y-2 text-sm">
-          <p><strong>Email:</strong> {user.email}</p>
-          <p><strong>Phone:</strong> {user.phone}</p>
-          <p><strong>Address:</strong> {user.address}</p>
+          <p><strong>Email:</strong> {email}</p>
+          {/* If you want phone/address, we must store or fetch them */}
+          <p><strong>Phone:</strong> n/a</p>
+          <p><strong>Address:</strong> n/a</p>
         </div>
       </div>
 
