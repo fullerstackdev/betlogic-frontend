@@ -1,32 +1,29 @@
-// src/pages/auth/VerifyPage.jsx
+// src/pages/Auth/VerifyPage.jsx
 import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 
 function VerifyPage() {
   const { token } = useParams();
-  const [message, setMessage] = useState("");
+  const [message, setMessage] = useState("Verifying...");
   const [error, setError] = useState("");
 
   useEffect(() => {
-    async function doVerify() {
+    async function verify() {
       try {
-        const res = await fetch(import.meta.env.VITE_API_BASE + "/auth/verify/" + token);
-        const text = await res.text();
-        if (!res.ok) {
-          throw new Error(text);
-        }
-        setMessage(text);
+        const base = import.meta.env.VITE_API_BASE;
+        const res = await fetch(`${base}/auth/verify/${token}`);
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || "Verify failed");
+        setMessage(data.message || "Email verified. You may login now.");
       } catch (err) {
         setError(err.message);
       }
     }
-    doVerify();
+    verify();
   }, [token]);
 
-  if (error) {
-    return <p style={{ color: "red" }}>{error}</p>;
-  }
-  return <p>{message || "Verifying..."}</p>;
+  if (error) return <p className="text-red-400">{error}</p>;
+  return <p>{message}</p>;
 }
 
 export default VerifyPage;

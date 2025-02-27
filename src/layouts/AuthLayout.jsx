@@ -3,6 +3,7 @@ import React from "react";
 import { Outlet } from "react-router-dom";
 
 function AuthLayout() {
+  // no forced redirect 
   return (
     <div
       className="
@@ -11,7 +12,6 @@ function AuthLayout() {
         text-white
         flex items-center justify-center
         p-4
-        auth-layout
       "
     >
       <div
@@ -32,3 +32,4 @@ function AuthLayout() {
 }
 
 export default AuthLayout;
+

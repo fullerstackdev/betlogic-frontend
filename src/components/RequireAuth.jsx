@@ -2,22 +2,22 @@
 import React from "react";
 import { Navigate, Outlet } from "react-router-dom";
 
-function RequireAuth({ allowedRoles = [] }) {
-  // read from localStorage
+function RequireAuth({ allowedRoles }) {
   const token = localStorage.getItem("token");
-  const role = localStorage.getItem("role");
+  const role = localStorage.getItem("role"); // stored in LoginPage
 
-  // 1) If no token => go to /auth/login
+  // if no token => go login
   if (!token) {
     return <Navigate to="/auth/login" replace />;
   }
 
-  // 2) If we have a token but the role isn't allowed => also go to /auth/login
-  if (allowedRoles.length > 0 && !allowedRoles.includes(role)) {
-    return <Navigate to="/auth/login" replace />;
+  // if roles are restricted (like admin only) and our role is not in that array => go "/"
+  if (allowedRoles && !allowedRoles.includes(role)) {
+    // or navigate("/auth/login") if you prefer
+    return <Navigate to="/" replace />;
   }
 
-  // 3) Otherwise, good. Render the child route (MainLayout or AdminLayout)
+  // otherwise good
   return <Outlet />;
 }
 
