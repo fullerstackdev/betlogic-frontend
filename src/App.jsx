@@ -10,6 +10,7 @@ import FinancesPage from "./pages/Finances/FinancesPage";
 import PromotionsPage from "./pages/Promotions/PromotionsPage";
 import PromotionDetailPage from "./pages/Promotions/PromotionDetailPage";
 import TasksPage from "./pages/Tasks/TasksPage";
+import BetsPage from "./pages/Bets/BetsPage";
 
 function App() {
   return (
@@ -24,6 +25,7 @@ function App() {
       <Route path="/promotions" element={<PromotionsPage />} />
       <Route path="/promotions/:promoId" element={<PromotionDetailPage />} />
       <Route path="/tasks" element={<TasksPage />} />
+      <Route path="/bets" element={<BetsPage />} />
       <Route path="*" element={<div>Not Found</div>} />
     </Routes>
   );
