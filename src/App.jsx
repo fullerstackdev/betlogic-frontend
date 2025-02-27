@@ -2,11 +2,12 @@
 import React from "react";
 import { Routes, Route } from "react-router-dom";
 
+// LAYOUTS
 import AuthLayout from "./layouts/AuthLayout";
 import MainLayout from "./layouts/MainLayout";
 import AdminLayout from "./layouts/AdminLayout";
 
-// Auth pages
+// AUTH PAGES
 import LoginPage from "./pages/Auth/LoginPage";
 import RegisterPage from "./pages/Auth/RegisterPage";
 import ForgotPage from "./pages/Auth/ForgotPage";
@@ -14,7 +15,7 @@ import ResetPage from "./pages/Auth/ResetPage";
 import VerifyPage from "./pages/Auth/VerifyPage";
 import LogoutPage from "./pages/Auth/LogoutPage";
 
-// User pages
+// USER PAGES (Protected)
 import Dashboard from "./pages/Dashboard";
 import Finances from "./pages/Finances";
 import Promotions from "./pages/Promotions";
@@ -26,7 +27,7 @@ import Calendar from "./pages/Calendar";
 import UserProfile from "./pages/UserProfile";
 import Notifications from "./pages/Notifications";
 
-// Admin pages
+// ADMIN PAGES (Protected & role-based)
 import ManageUsersPage from "./pages/admin/ManageUsersPage";
 import AdminFinancesPage from "./pages/admin/AdminFinancesPage";
 import AdminPromotionsPage from "./pages/admin/AdminPromotionsPage";
@@ -37,13 +38,13 @@ import AdminMessagesPage from "./pages/admin/AdminMessagesPage";
 // Not Found
 import NotFound from "./pages/NotFound";
 
-// The new component that enforces auth
+// AUTH PROTECTOR
 import RequireAuth from "./components/RequireAuth";
 
 function App() {
   return (
     <Routes>
-      {/* AUTH LAYOUT (public) */}
+      {/** PUBLIC AUTH ROUTES */}
       <Route element={<AuthLayout />}>
         <Route path="/auth/login" element={<LoginPage />} />
         <Route path="/auth/register" element={<RegisterPage />} />
@@ -53,8 +54,8 @@ function App() {
         <Route path="/auth/logout" element={<LogoutPage />} />
       </Route>
 
-      {/* USER LAYOUT - protected */}
-      <Route element={<RequireAuth />}>
+      {/** PROTECTED USER ROUTES */}
+      <Route element={<RequireAuth allowedRoles={["user","admin","superadmin"]} />}>
         <Route element={<MainLayout />}>
           <Route path="/" element={<Dashboard />} />
           <Route path="/finances" element={<Finances />} />
@@ -69,8 +70,8 @@ function App() {
         </Route>
       </Route>
 
-      {/* ADMIN LAYOUT - protected with roles */}
-      <Route element={<RequireAuth requiredRoles={["admin","superadmin"]} />}>
+      {/** PROTECTED ADMIN ROUTES */}
+      <Route element={<RequireAuth allowedRoles={["admin","superadmin"]} />}>
         <Route path="/admin" element={<AdminLayout />}>
           <Route path="users" element={<ManageUsersPage />} />
           <Route path="finances" element={<AdminFinancesPage />} />
@@ -81,7 +82,7 @@ function App() {
         </Route>
       </Route>
 
-      {/* 404 CATCH ALL */}
+      {/** CATCH-ALL */}
       <Route path="*" element={<NotFound />} />
     </Routes>
   );

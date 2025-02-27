@@ -1,22 +1,23 @@
 // src/components/RequireAuth.jsx
 import React from "react";
 import { Navigate, Outlet } from "react-router-dom";
-import { useAuth } from "../services/useAuth";
 
-function RequireAuth({ requiredRoles = [] }) {
-  const { user, token } = useAuth();
+function RequireAuth({ allowedRoles = [] }) {
+  // read from localStorage
+  const token = localStorage.getItem("token");
+  const role = localStorage.getItem("role");
 
-  // 1) Check if user has a valid token
+  // 1) If no token => go to /auth/login
   if (!token) {
     return <Navigate to="/auth/login" replace />;
   }
-  // 2) If certain roles are required, verify user.role is allowed
-  if (requiredRoles.length > 0 && !requiredRoles.includes(user?.role)) {
-    // Not allowed => either push them to "/" or to an error page
-    return <Navigate to="/" replace />;
+
+  // 2) If we have a token but the role isn't allowed => also go to /auth/login
+  if (allowedRoles.length > 0 && !allowedRoles.includes(role)) {
+    return <Navigate to="/auth/login" replace />;
   }
 
-  // Otherwise, render child routes (the <Outlet>).
+  // 3) Otherwise, good. Render the child route (MainLayout or AdminLayout)
   return <Outlet />;
 }
 
