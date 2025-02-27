@@ -1,6 +1,6 @@
+// src/pages/auth/VerifyPage.jsx
 import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
-import { verifyUser } from "../../services/api";
 
 function VerifyPage() {
   const { token } = useParams();
@@ -10,24 +10,23 @@ function VerifyPage() {
   useEffect(() => {
     async function doVerify() {
       try {
-        const resp = await verifyUser(token);
-        setMessage(resp.message);
+        const res = await fetch(import.meta.env.VITE_API_BASE + "/auth/verify/" + token);
+        const text = await res.text();
+        if (!res.ok) {
+          throw new Error(text);
+        }
+        setMessage(text);
       } catch (err) {
         setError(err.message);
       }
     }
-    if (token) doVerify();
+    doVerify();
   }, [token]);
 
   if (error) {
     return <p style={{ color: "red" }}>{error}</p>;
   }
-
-  if (!message) {
-    return <p>Verifying...</p>;
-  }
-
-  return <p style={{ color: "green" }}>{message}</p>;
+  return <p>{message || "Verifying..."}</p>;
 }
 
 export default VerifyPage;

@@ -1,3 +1,4 @@
+// src/pages/auth/LogoutPage.jsx
 import React, { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 
@@ -5,17 +6,12 @@ function LogoutPage() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    // remove token from localStorage
     localStorage.removeItem("token");
-    // redirect to /auth/login or home page
+    localStorage.removeItem("role");
     navigate("/auth/login");
   }, [navigate]);
 
-  return (
-    <div>
-      <p>Logging out...</p>
-    </div>
-  );
+  return <p>Logging out...</p>;
 }
 
 export default LogoutPage;

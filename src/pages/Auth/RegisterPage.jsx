@@ -1,30 +1,37 @@
+// src/pages/auth/RegisterPage.jsx
 import React, { useState } from "react";
-import { registerUser } from "../../services/api";
+import { useNavigate } from "react-router-dom";
 
 function RegisterPage() {
-  const [formData, setFormData] = useState({
+  const navigate = useNavigate();
+  const [form, setForm] = useState({
     email: "",
     password: "",
     firstName: "",
     lastName: ""
   });
   const [error, setError] = useState("");
-  const [success, setSuccess] = useState("");
-
-  function handleChange(e) {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value
-    });
-  }
+  const [message, setMessage] = useState("");
 
   async function handleSubmit(e) {
     e.preventDefault();
     setError("");
-    setSuccess("");
+    setMessage("");
     try {
-      const resp = await registerUser(formData);
-      setSuccess(resp.message); // "User registered..."
+      const res = await fetch(import.meta.env.VITE_API_BASE + "/auth/register", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(form)
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.error || "Registration failed");
+      }
+      setMessage(data.message);
+      // optionally navigate to login page
+      // navigate("/auth/login");
     } catch (err) {
       setError(err.message);
     }
@@ -34,46 +41,45 @@ function RegisterPage() {
     <div style={{ maxWidth: 400, margin: "auto" }}>
       <h2>Register</h2>
       {error && <p style={{ color: "red" }}>{error}</p>}
-      {success && <p style={{ color: "green" }}>{success}</p>}
+      {message && <p style={{ color: "green" }}>{message}</p>}
       <form onSubmit={handleSubmit}>
         <div>
-          <label>Email</label>
-          <input 
+          <label>Email:</label>
+          <input
             type="email"
-            name="email"
-            value={formData.email}
-            onChange={handleChange}
+            value={form.email}
+            onChange={e => setForm({ ...form, email: e.target.value })}
           />
         </div>
         <div>
-          <label>Password</label>
-          <input 
+          <label>Password:</label>
+          <input
             type="password"
-            name="password"
-            value={formData.password}
-            onChange={handleChange}
+            value={form.password}
+            onChange={e => setForm({ ...form, password: e.target.value })}
           />
         </div>
         <div>
-          <label>First Name</label>
+          <label>First Name:</label>
           <input
             type="text"
-            name="firstName"
-            value={formData.firstName}
-            onChange={handleChange}
+            value={form.firstName}
+            onChange={e => setForm({ ...form, firstName: e.target.value })}
           />
         </div>
         <div>
-          <label>Last Name</label>
+          <label>Last Name:</label>
           <input
             type="text"
-            name="lastName"
-            value={formData.lastName}
-            onChange={handleChange}
+            value={form.lastName}
+            onChange={e => setForm({ ...form, lastName: e.target.value })}
           />
         </div>
-        <button type="submit">Register</button>
+        <button type="submit">Sign Up</button>
       </form>
+      <p style={{ marginTop: "1rem" }}>
+        <a href="/auth/login">Already have an account? Log in.</a>
+      </p>
     </div>
   );
 }

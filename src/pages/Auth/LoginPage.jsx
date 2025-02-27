@@ -1,21 +1,41 @@
+// src/pages/auth/LoginPage.jsx
 import React, { useState } from "react";
-import { loginUser } from "../../services/api";
+import { useNavigate } from "react-router-dom";
 
 function LoginPage() {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const navigate = useNavigate();
+  const [form, setForm] = useState({
+    email: "",
+    password: ""
+  });
   const [error, setError] = useState("");
-  const [success, setSuccess] = useState("");
 
-  async function handleLogin(e) {
+  async function handleSubmit(e) {
     e.preventDefault();
     setError("");
-    setSuccess("");
     try {
-      const data = await loginUser({ email, password });
-      setSuccess(data.message);
-      // data.token is your JWT. store in localStorage or context
+      const res = await fetch(import.meta.env.VITE_API_BASE + "/auth/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(form)
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.error || "Login failed");
+      }
+      // store token
       localStorage.setItem("token", data.token);
+      localStorage.setItem("role", data.role);
+
+      // redirect
+      if (data.role === "admin" || data.role === "superadmin") {
+        navigate("/admin/users");
+      } else {
+        // normal user
+        navigate("/");
+      }
     } catch (err) {
       setError(err.message);
     }
@@ -25,26 +45,28 @@ function LoginPage() {
     <div style={{ maxWidth: 400, margin: "auto" }}>
       <h2>Login</h2>
       {error && <p style={{ color: "red" }}>{error}</p>}
-      {success && <p style={{ color: "green" }}>{success}</p>}
-      <form onSubmit={handleLogin}>
+      <form onSubmit={handleSubmit}>
         <div>
-          <label>Email</label>
-          <input 
-            type="email" 
-            value={email} 
-            onChange={e => setEmail(e.target.value)} 
+          <label>Email:</label>
+          <input
+            type="email"
+            value={form.email}
+            onChange={e => setForm({ ...form, email: e.target.value })}
           />
         </div>
         <div>
-          <label>Password</label>
-          <input 
-            type="password" 
-            value={password} 
-            onChange={e => setPassword(e.target.value)} 
+          <label>Password:</label>
+          <input
+            type="password"
+            value={form.password}
+            onChange={e => setForm({ ...form, password: e.target.value })}
           />
         </div>
-        <button type="submit">Login</button>
+        <button type="submit">Log In</button>
       </form>
+      <p style={{ marginTop: "1rem" }}>
+        <a href="/auth/register">Register</a> if you have no account.
+      </p>
     </div>
   );
 }
