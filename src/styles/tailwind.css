@@ -1,4 +1,6 @@
 @import "tailwindcss";
+@import "react-big-calendar/lib/css/react-big-calendar.css";
+
 
 /* 
    1) Theme Variables (CSS-first).

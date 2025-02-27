@@ -1,23 +1,22 @@
 // src/pages/Finances.jsx
+
 import React, { useState, useEffect, useMemo } from "react";
 
 /**
- * This file calls:
- *  - GET /api/finances/accounts    (for user’s accounts)
- *  - GET /api/finances/transactions (for user’s transactions)
- *  - POST /api/finances/transactions (to add a new transaction)
- *
- * All endpoints are protected; we read localStorage.token for the Bearer token.
- * No placeholders or speculation.
- *
- * We also include Tailwind transitions for some hover/scale animations.
+ * Final code for Finances, which:
+ * - Lists user accounts (GET /api/finances/accounts)
+ * - Lets user add a new account (POST /api/finances/accounts)
+ * - Lists user transactions (GET /api/finances/transactions)
+ * - Lets user create a transaction (POST /api/finances/transactions)
+ * No speculation, referencing your known endpoints.
  */
+
 export default function Finances() {
   const [accounts, setAccounts] = useState([]);
   const [transactions, setTransactions] = useState([]);
   const [error, setError] = useState("");
 
-  // For "Add Transaction" modal
+  // Add Transaction Modal
   const [showAddTxModal, setShowAddTxModal] = useState(false);
   const [newTx, setNewTx] = useState({
     date: "",
@@ -29,10 +28,14 @@ export default function Finances() {
     status: "Pending",
   });
 
-  // Transaction detail modal
+  // Transaction Detail Modal
   const [selectedTx, setSelectedTx] = useState(null);
 
-  // Partial detail top-cards modal
+  // Account Modal
+  const [showAddAcctModal, setShowAddAcctModal] = useState(false);
+  const [acctName, setAcctName] = useState("");
+
+  // Partial detail (top cards) modal
   const [detailModal, setDetailModal] = useState(null);
 
   const token = localStorage.getItem("token");
@@ -70,11 +73,12 @@ export default function Finances() {
           throw new Error(errData.error || "Failed to load transactions");
         }
         const dataT = await resT.json();
-        // dataT is an array of:
-        // {
-        //   id, date, amount, type, description, status,
-        //   from_account_name, to_account_name
-        // }
+        // dataT => [
+        //   {
+        //     id, date, amount, type, description, status,
+        //     from_account_name, to_account_name
+        //   }, ...
+        // ]
         setTransactions(dataT);
       } catch (err) {
         setError(err.message);
@@ -95,11 +99,10 @@ export default function Finances() {
         outSum += Number(tx.amount);
       }
     });
-    const net = inSum - outSum;
     return {
       totalIn: inSum,
       totalOut: outSum,
-      netBalance: net,
+      netBalance: inSum - outSum,
     };
   }, [transactions]);
 
@@ -111,23 +114,23 @@ export default function Finances() {
       !newTx.toAccount ||
       !newTx.amount
     ) {
-      alert("All fields except description are required.");
+      alert("All transaction fields (except description) are required.");
       return;
     }
     try {
       const amt = parseFloat(newTx.amount);
       if (amt <= 0) {
-        alert("Amount must be a positive number.");
+        alert("Amount must be > 0");
         return;
       }
       const bodyObj = {
+        date: newTx.date,
         fromAccount: newTx.fromAccount,
         toAccount: newTx.toAccount,
         amount: amt,
         type: newTx.type,
-        description: newTx.description,
+        description: newTx.description || null,
         status: newTx.status,
-        date: newTx.date,
       };
       const res = await fetch(`${base}/finances/transactions`, {
         method: "POST",
@@ -141,8 +144,7 @@ export default function Finances() {
       if (!res.ok) {
         throw new Error(resultData.error || "Failed to create transaction");
       }
-      // The back end returns { message, transaction: {...} }
-      // We can push that transaction onto transactions
+      // resultData => { message, transaction: {...} }
       setTransactions([...transactions, resultData.transaction]);
       setShowAddTxModal(false);
       setNewTx({
@@ -159,9 +161,37 @@ export default function Finances() {
     }
   }
 
+  // Add a new account
+  async function addAccount() {
+    if (!acctName.trim()) {
+      alert("Account name is required.");
+      return;
+    }
+    try {
+      const res = await fetch(`${base}/finances/accounts`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ name: acctName.trim() }),
+      });
+      const resultData = await res.json();
+      if (!res.ok) {
+        throw new Error(resultData.error || "Failed to create account");
+      }
+      // resultData => { message, account: {id, name, balance} }
+      setAccounts([...accounts, resultData.account]);
+      setShowAddAcctModal(false);
+      setAcctName("");
+    } catch (err) {
+      alert(err.message);
+    }
+  }
+
   if (error) {
     return (
-      <div className="text-red-400 animate-pulse font-semibold">
+      <div className="text-red-400 font-semibold animate-pulse">
         Error: {error}
       </div>
     );
@@ -171,7 +201,7 @@ export default function Finances() {
     <div className="space-y-4 transition-all duration-300 ease-out">
       <h2 className="text-2xl font-bold mb-2">Your Finances</h2>
 
-      {/* TOP CARDS */}
+      {/* Top Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <div
           className="card cursor-pointer hover:scale-105"
@@ -209,11 +239,19 @@ export default function Finances() {
         </div>
       </div>
 
-      {/* ACCOUNTS + (Placeholder) CHART */}
+      {/* Accounts + Chart */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {/* Accounts list */}
+        {/* ACCOUNTS CARD */}
         <div className="card hover:scale-105 transition-transform">
-          <h3 className="text-lg font-bold mb-2">Accounts</h3>
+          <div className="flex justify-between items-center mb-2">
+            <h3 className="text-lg font-bold">Accounts</h3>
+            <button
+              className="btn text-sm"
+              onClick={() => setShowAddAcctModal(true)}
+            >
+              + Add Account
+            </button>
+          </div>
           {accounts.length === 0 && (
             <p className="text-sm text-muted">No accounts found.</p>
           )}
@@ -225,16 +263,16 @@ export default function Finances() {
           ))}
         </div>
 
-        {/* Chart area */}
+        {/* CHART PLACEHOLDER */}
         <div className="card hover:scale-105 transition-transform">
           <h3 className="text-lg font-bold mb-2">Cashflow Chart</h3>
           <div className="h-40 flex items-center justify-center text-muted">
-            [Placeholder Chart or Animated Bars]
+            [Placeholder Chart or Insert a Chart Library]
           </div>
         </div>
       </div>
 
-      {/* TRANSACTIONS TABLE */}
+      {/* TRANSACTIONS CARD */}
       <div className="card hover:scale-105 transition-transform">
         <div className="flex justify-between mb-2 items-center">
           <h3 className="text-lg font-bold">All Transactions</h3>
@@ -245,7 +283,6 @@ export default function Finances() {
             + Add Transaction
           </button>
         </div>
-
         {transactions.length === 0 && (
           <p className="text-sm text-muted">No transactions yet.</p>
         )}
@@ -293,6 +330,42 @@ export default function Finances() {
         )}
       </div>
 
+      {/* ADD ACCOUNT MODAL */}
+      {showAddAcctModal && (
+        <div
+          className="modal-backdrop flex items-center justify-center"
+          onClick={() => setShowAddAcctModal(false)}
+        >
+          <div
+            className="modal-content w-80"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h3 className="text-xl font-bold mb-2">Add Account</h3>
+            <div className="mb-2">
+              <label className="block font-semibold mb-1">Account Name</label>
+              <input
+                type="text"
+                className="border w-full p-1 rounded bg-[var(--color-dark)] text-white"
+                placeholder="E.g. 'User Bank', 'BetMGM'"
+                value={acctName}
+                onChange={(e) => setAcctName(e.target.value)}
+              />
+            </div>
+            <div className="flex gap-2">
+              <button className="btn" onClick={addAccount}>
+                Save
+              </button>
+              <button
+                className="btn bg-[var(--color-mid)] hover:bg-[var(--color-accent)]"
+                onClick={() => setShowAddAcctModal(false)}
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* ADD TRANSACTION MODAL */}
       {showAddTxModal && (
         <div
@@ -321,7 +394,7 @@ export default function Finances() {
                 <input
                   type="text"
                   className="border w-full p-1 rounded bg-[var(--color-dark)] text-white"
-                  placeholder="e.g. 1 or 'User Bank'"
+                  placeholder="ID or name"
                   value={newTx.fromAccount}
                   onChange={(e) =>
                     setNewTx({ ...newTx, fromAccount: e.target.value })
@@ -333,7 +406,7 @@ export default function Finances() {
                 <input
                   type="text"
                   className="border w-full p-1 rounded bg-[var(--color-dark)] text-white"
-                  placeholder="e.g. 2 or 'BetMGM'"
+                  placeholder="ID or name"
                   value={newTx.toAccount}
                   onChange={(e) =>
                     setNewTx({ ...newTx, toAccount: e.target.value })
@@ -443,7 +516,7 @@ export default function Finances() {
         </div>
       )}
 
-      {/* PARTIAL DETAIL MODAL for TOP CARDS */}
+      {/* PARTIAL DETAIL MODAL for the top cards */}
       {detailModal && (
         <div
           className="modal-backdrop flex items-center justify-center"
@@ -469,7 +542,7 @@ export default function Finances() {
               <>
                 <h4 className="text-xl font-bold mb-2">Net Balance</h4>
                 <p className="text-sm mb-4">
-                  ${netBalance} (In minus Out)
+                  Currently ${netBalance} (In minus Out)
                 </p>
               </>
             )}
