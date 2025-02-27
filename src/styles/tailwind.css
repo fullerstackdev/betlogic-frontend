@@ -1,0 +1,152 @@
+@import "tailwindcss";
+
+/* 
+   1) Theme Variables (CSS-first).
+   Using your brand colors + additional dark neutrals.
+*/
+@theme {
+  /* Font family: Poppins (Load in index.html from Google Fonts) */
+  --font-sans: "Poppins", sans-serif;
+
+  /* BetLogic brand colors */
+  --color-primary: #5dd9c1;    /* Teal */
+  --color-secondary: #acfcd9;  /* Lighter teal */
+  --color-accent: #b084cc;     /* Purple accent */
+  --color-mid: #665687;        /* Deeper purple */
+  --color-dark: #190933;       /* Very dark purple */
+  
+  /* Additional theme colors for dark UI */
+  --color-bg: #141414;         /* Near-black background */
+  --color-panel: #1f1f2e;       /* Panel / card background */
+  --color-border: #2e2e40;      /* Subtle border color */
+  --color-text: #f0f0f0;        /* Main text color */
+  
+  /* Spacing scale */
+  --spacing: 0.25rem;
+}
+
+/*
+  2) Base styles (global defaults).
+*/
+@layer base {
+  body {
+    margin: 0;
+    padding: 0;
+    font-family: var(--font-sans), sans-serif;
+    background: linear-gradient(to bottom right, #141414, #190933);
+    color: var(--color-text);
+  }
+
+  /* Remove default list / table spacing, etc. */
+  ul, li, h1, h2, h3, h4, p, table, tr, td, th {
+    margin: 0;
+    padding: 0;
+  }
+
+  /* Scrollbar styling (optional) */
+  ::-webkit-scrollbar {
+    width: 8px;
+  }
+  ::-webkit-scrollbar-thumb {
+    background-color: var(--color-mid);
+    border-radius: 4px;
+  }
+}
+
+/*
+  3) Components layer: cards, buttons, tables, plus brand “accents”
+*/
+@layer components {
+  /* Reusable card with subtle gradient & accent border */
+  .card {
+    @apply relative p-4 rounded shadow-xl text-[var(--color-text)]
+      transition-transform transform-gpu hover:scale-[1.02];
+    background: linear-gradient(
+      135deg,
+      var(--color-panel) 0%,
+      var(--color-dark) 100%
+    );
+    border-left: 4px solid var(--color-primary);
+  }
+
+  .card:hover {
+    border-left-color: var(--color-accent);
+  }
+
+  /* Buttons with accent background, hover transitions */
+  .btn {
+    @apply inline-block px-4 py-2 rounded font-semibold transition-colors cursor-pointer;
+    background-color: var(--color-primary);
+    color: #fff;
+  }
+  .btn:hover {
+    background-color: var(--color-accent);
+  }
+
+  /* “Positive” text (like +13%) or success statuses */
+  .text-pos {
+    color: var(--color-primary);
+  }
+  /* “Negative” text (like -5%) or canceled statuses */
+  .text-neg {
+    color: var(--color-accent);
+  }
+  /* Muted / subtext (like a placeholder or subtle label) */
+  .text-muted {
+    color: #999;
+  }
+
+  /* Table with row hover, brand borders, etc. */
+  .table {
+    @apply w-full text-sm border-collapse;
+  }
+  .table th {
+    @apply font-medium text-[var(--color-primary)] border-b border-[var(--color-border)] px-3 py-2 text-left;
+  }
+  .table td {
+    @apply border-b border-[var(--color-border)] px-3 py-2;
+    color: var(--color-text);
+  }
+  .table tr:hover {
+    background-color: rgba(255, 255, 255, 0.04);
+  }
+
+  /* A gallery card for promotions (with an image) */
+  .promo-card {
+    @apply p-3 rounded shadow-lg text-white cursor-pointer transition-transform transform-gpu hover:scale-[1.02];
+    background: linear-gradient(
+      135deg,
+      var(--color-panel) 0%,
+      var(--color-dark) 100%
+    );
+    border: 2px solid var(--color-primary);
+  }
+  .promo-card:hover {
+    border-color: var(--color-accent);
+  }
+
+  /* Modal backdrop + content */
+  .modal-backdrop {
+    @apply fixed inset-0 flex items-center justify-center;
+    /* Replace bg-opacity-50 with an explicit rgba value */
+    background-color: rgba(0, 0, 0, 0.5);
+  }
+  .modal-content {
+    @apply bg-[var(--color-panel)] rounded p-6 w-96 text-white shadow-2xl;
+    border: 2px solid var(--color-mid);
+  }
+}
+
+/*
+  4) Utilities or overrides 
+  (e.g., for spacing, transforms, etc.)
+*/
+@layer utilities {
+  /* Example: brand accent text class */
+  .text-brand {
+    color: var(--color-primary);
+  }
+  .bg-panel {
+    background-color: var(--color-panel);
+  }
+}
