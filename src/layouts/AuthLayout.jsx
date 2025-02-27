@@ -3,10 +3,6 @@ import React from "react";
 import { Outlet } from "react-router-dom";
 
 function AuthLayout() {
-  // No forced redirect here. 
-  // If you really want "if user is logged in, go / or /admin" then do it carefully 
-  // after verifying the token is truly valid. But for now, let's omit that.
-  
   return (
     <div
       className="
@@ -15,6 +11,7 @@ function AuthLayout() {
         text-white
         flex items-center justify-center
         p-4
+        auth-layout
       "
     >
       <div

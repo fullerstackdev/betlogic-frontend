@@ -6,45 +6,42 @@ import TopNavbar from "../components/TopNavbar";
 
 function MainLayout() {
   const navigate = useNavigate();
-
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [sidebarOpenMobile, setSidebarOpenMobile] = useState(false);
 
   useEffect(() => {
     const token = localStorage.getItem("token");
     if (!token) {
-      // Force login if user not logged in
+      // No token => user not logged in => push them to login
       navigate("/auth/login");
     }
   }, [navigate]);
 
   const handleToggleSidebarDesktop = () => {
-    setSidebarCollapsed(!sidebarCollapsed);
+    setSidebarCollapsed((prev) => !prev);
   };
 
   const handleToggleSidebarMobile = () => {
-    setSidebarOpenMobile(!sidebarOpenMobile);
+    setSidebarOpenMobile((prev) => !prev);
   };
 
   return (
     <div className="flex h-screen bg-[var(--color-bg)] text-[var(--color-text)]">
-      {/* SIDEBAR (desktop or overlay for mobile) */}
+      {/* SIDEBAR */}
       <Sidebar
         collapsed={sidebarCollapsed}
         openMobile={sidebarOpenMobile}
         onCloseMobile={() => setSidebarOpenMobile(false)}
       />
 
+      {/* RIGHT SECTION: NAVBAR + MAIN CONTENT */}
       <div className="flex-1 flex flex-col">
-        {/* TOP NAVBAR */}
         <div className="flex-shrink-0">
           <TopNavbar
             onToggleSidebarDesktop={handleToggleSidebarDesktop}
             onToggleSidebarMobile={handleToggleSidebarMobile}
           />
         </div>
-
-        {/* MAIN CONTENT */}
         <div className="flex-grow overflow-auto p-4">
           <Outlet />
         </div>

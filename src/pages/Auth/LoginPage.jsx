@@ -10,68 +10,68 @@ function LoginPage() {
   async function handleSubmit(e) {
     e.preventDefault();
     setError("");
-
     try {
-      const res = await fetch(`${import.meta.env.VITE_API_BASE}/auth/login`, {
+      console.log("Login request to:", import.meta.env.VITE_API_BASE + "/auth/login");
+      const res = await fetch(import.meta.env.VITE_API_BASE + "/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(form),
       });
+
+      console.log("Response status:", res.status);
       const data = await res.json();
+      console.log("Response data:", data);
+
       if (!res.ok) {
         throw new Error(data.error || "Login failed");
       }
 
-      // store token + role
+      // Store token & role in localStorage
       localStorage.setItem("token", data.token);
       localStorage.setItem("role", data.role);
+      console.log("Stored token & role. Navigating now...");
 
-      // redirect
+      // Navigate
       if (data.role === "admin" || data.role === "superadmin") {
-        navigate("/admin/users");
+        navigate("/admin");
       } else {
-        // normal user
         navigate("/");
       }
     } catch (err) {
+      console.error("Login error:", err);
       setError(err.message);
     }
   }
 
   return (
-    <div style={{ maxWidth: 400, margin: "0 auto" }}>
-      <h2 className="text-2xl mb-4">Login</h2>
-      {error && <p style={{ color: "red" }}>{error}</p>}
-
-      <form onSubmit={handleSubmit} className="space-y-2">
+    <div className="w-full text-white">
+      <h2 className="text-2xl font-bold mb-4">Log In</h2>
+      {error && <p className="text-neg mb-2">{error}</p>}
+      <form onSubmit={handleSubmit} className="space-y-3">
         <div>
-          <label>Email:</label>
+          <label className="block mb-1">Email:</label>
           <input
             type="email"
+            className="border rounded px-2 py-1 w-full bg-[var(--color-dark)] text-white"
             value={form.email}
             onChange={(e) => setForm({ ...form, email: e.target.value })}
-            className="border w-full p-2 bg-[var(--color-dark)] text-white"
-            required
           />
         </div>
         <div>
-          <label>Password:</label>
+          <label className="block mb-1">Password:</label>
           <input
             type="password"
+            className="border rounded px-2 py-1 w-full bg-[var(--color-dark)] text-white"
             value={form.password}
             onChange={(e) => setForm({ ...form, password: e.target.value })}
-            className="border w-full p-2 bg-[var(--color-dark)] text-white"
-            required
           />
         </div>
-
-        <button type="submit" className="btn w-full mt-2">
+        <button type="submit" className="btn">
           Log In
         </button>
       </form>
-
-      <p className="mt-4 text-sm">
-        <a href="/auth/register" className="underline text-[var(--color-primary)]">
+      <p className="mt-4">
+        <a href="/auth/register" className="text-[var(--color-primary)] hover:underline">
           Register
         </a>{" "}
         if you don’t have an account.
