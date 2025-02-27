@@ -1,158 +1,155 @@
 // src/pages/Finances.jsx
 import React, { useState, useEffect, useMemo } from "react";
 
-/**
- * Assuming endpoints:
- *  GET /api/accounts        => user accounts
- *  GET /api/transactions    => user transactions
- *  POST /api/transactions   => create transaction
- */
-function Finances() {
+export default function Finances() {
   const [accounts, setAccounts] = useState([]);
   const [transactions, setTransactions] = useState([]);
-  const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
-  // For the "Add Transaction" modal
+  // For "Add Transaction" modal
   const [showAddTxModal, setShowAddTxModal] = useState(false);
   const [newTx, setNewTx] = useState({
     date: "",
-    from_account: "User Bank",
-    to_account: "BetMGM",
+    fromAccount: "",
+    toAccount: "",
     amount: "",
     type: "Deposit",
     description: "",
     status: "Pending",
   });
 
-  // For transaction detail modal
+  // For Transaction detail modal
   const [selectedTx, setSelectedTx] = useState(null);
-
-  // For partial detail modals (top 4 cards)
+  // For top-cards partial detail modal
   const [detailModal, setDetailModal] = useState(null);
 
-  // Load accounts and transactions on mount
+  // Load user’s accounts & transactions on mount
   useEffect(() => {
-    async function loadData() {
+    const base = import.meta.env.VITE_API_BASE; 
+    const token = localStorage.getItem("token");
+
+    async function loadAccounts() {
       try {
-        setLoading(true);
-        setError("");
-        const token = localStorage.getItem("token");
-
-        // 1) Fetch accounts
-        const accRes = await fetch(
-          `${import.meta.env.VITE_API_BASE}/api/accounts`,
-          {
-            headers: {
-              Authorization: `Bearer ${token}`
-            }
-          }
-        );
-        if (!accRes.ok) {
-          throw new Error("Failed to load accounts");
+        // e.g. GET /api/finances/accounts
+        const resA = await fetch(`${base}/finances/accounts`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+        if (!resA.ok) {
+          const errData = await resA.json().catch(() => ({}));
+          throw new Error(errData.error || "Failed to load accounts");
         }
-        const accData = await accRes.json();
-
-        // 2) Fetch transactions
-        const txRes = await fetch(
-          `${import.meta.env.VITE_API_BASE}/api/transactions`,
-          {
-            headers: {
-              Authorization: `Bearer ${token}`
-            }
-          }
-        );
-        if (!txRes.ok) {
-          throw new Error("Failed to load transactions");
-        }
-        const txData = await txRes.json();
-
-        setAccounts(accData);
-        setTransactions(txData);
+        const dataA = await resA.json();
+        setAccounts(dataA); // array of {id, name, balance}
       } catch (err) {
         setError(err.message);
-      } finally {
-        setLoading(false);
       }
     }
-    loadData();
+
+    async function loadTransactions() {
+      try {
+        // e.g. GET /api/transactions
+        const resT = await fetch(`${base}/transactions`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+        if (!resT.ok) {
+          const errData = await resT.json().catch(() => ({}));
+          throw new Error(errData.error || "Failed to load transactions");
+        }
+        const dataT = await resT.json();
+        setTransactions(dataT); // array of {id, date, from_account, to_account, amount, type, status, description}
+      } catch (err) {
+        setError(err.message);
+      }
+    }
+
+    loadAccounts();
+    loadTransactions();
   }, []);
 
-  // Derived values from accounts + transactions
-  const {
-    totalIn,
-    totalOut,
-    netBalance
-  } = useMemo(() => {
+  // Compute top summary stats
+  const { totalIn, totalOut, netBalance, updatedAccounts } = useMemo(() => {
+    let accountsMap = {};
+    accounts.forEach((acc) => {
+      accountsMap[acc.name] = acc.balance;
+    });
+
     let inSum = 0;
     let outSum = 0;
 
+    // Adjust the inSum/outSum based on from_account / to_account
+    // We assume your DB returns from_account_name, to_account_name 
+    // or from_account, to_account. We'll assume "from_account" = string name for now.
     transactions.forEach((tx) => {
-      if (tx.to_account === "User Bank") {
-        inSum += Number(tx.amount);
-      }
-      if (tx.from_account === "User Bank") {
-        outSum += Number(tx.amount);
-      }
+      if (tx.from_account === "User Bank") outSum += tx.amount;
+      if (tx.to_account === "User Bank") inSum += tx.amount;
     });
 
+    const net = inSum - outSum;
+
+    // If we also want to compute updated balances, we can do it similarly.
+    // For now, we’ll keep it simple. If you want to reflect the updates in the UI, you'd do it here:
     return {
       totalIn: inSum,
       totalOut: outSum,
-      netBalance: inSum - outSum
+      netBalance: net,
+      updatedAccounts: accounts, // or some computed version
     };
-  }, [transactions]);
+  }, [accounts, transactions]);
 
-  // Add a new transaction
+  if (error) {
+    return <div className="text-red-400">Error: {error}</div>;
+  }
+
+  // Add new transaction
   async function addTransaction() {
-    if (!newTx.date || !newTx.amount || !newTx.type) return;
-    const token = localStorage.getItem("token");
-
+    if (!newTx.date || !newTx.amount || !newTx.fromAccount || !newTx.toAccount) {
+      alert("All fields required except description");
+      return;
+    }
     try {
-      const res = await fetch(`${import.meta.env.VITE_API_BASE}/api/transactions`, {
+      const base = import.meta.env.VITE_API_BASE;
+      const token = localStorage.getItem("token");
+      const bodyObj = {
+        date: newTx.date,
+        fromAccount: newTx.fromAccount,
+        toAccount: newTx.toAccount,
+        amount: parseFloat(newTx.amount),
+        type: newTx.type,
+        description: newTx.description || null,
+        status: newTx.status,
+      };
+
+      const res = await fetch(`${base}/transactions`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`
+          Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({
-          date: newTx.date,
-          from_account: newTx.from_account,
-          to_account: newTx.to_account,
-          amount: parseFloat(newTx.amount),
-          type: newTx.type,
-          description: newTx.description || "",
-          status: newTx.status || "Pending"
-        })
+        body: JSON.stringify(bodyObj),
       });
+      const data = await res.json();
       if (!res.ok) {
-        const data = await res.json();
         throw new Error(data.error || "Failed to create transaction");
       }
-      const createdTx = await res.json();
-
-      // Refresh local state
-      setTransactions([...transactions, createdTx]);
+      // push new transaction onto list
+      setTransactions([...transactions, data]);
+      setShowAddTxModal(false);
       setNewTx({
         date: "",
-        from_account: "User Bank",
-        to_account: "BetMGM",
+        fromAccount: "",
+        toAccount: "",
         amount: "",
         type: "Deposit",
         description: "",
         status: "Pending",
       });
-      setShowAddTxModal(false);
     } catch (err) {
       alert(err.message);
     }
-  }
-
-  if (loading) {
-    return <p>Loading finances...</p>;
-  }
-  if (error) {
-    return <p style={{ color: "red" }}>Error: {error}</p>;
   }
 
   return (
@@ -193,24 +190,25 @@ function Finances() {
         </div>
       </div>
 
-      {/* ACCOUNTS + TRANSACTIONS CHART not shown, but let's show accounts list */}
+      {/* ACCOUNTS + CHART (just showing accounts) */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {/* Accounts */}
         <div className="card">
           <h3 className="text-lg font-bold mb-2">Accounts</h3>
-          {accounts.length === 0 && <p>No accounts found.</p>}
-          {accounts.map((acc, idx) => (
-            <div key={idx} className="mb-2">
+          {updatedAccounts.map((acc) => (
+            <div key={acc.id} className="mb-2">
               <p className="font-semibold">{acc.name}</p>
-              <p className="text-sm text-muted">Balance: ${acc.balance}</p>
+              <p className="text-sm text-muted">
+                Balance: ${acc.balance}
+              </p>
             </div>
           ))}
         </div>
 
-        {/* We'll skip the actual chart for brevity */}
         <div className="card">
-          <h3 className="text-lg font-bold mb-2">[Placeholder] Chart</h3>
-          <p className="text-sm text-muted">Implement your chart if desired.</p>
+          <h3 className="text-lg font-bold mb-2">Cashflow Chart</h3>
+          <div className="h-40 flex items-center justify-center text-muted">
+            [Placeholder Chart or implement your charting logic]
+          </div>
         </div>
       </div>
 
@@ -225,49 +223,46 @@ function Finances() {
             + Add Transaction
           </button>
         </div>
-        {transactions.length === 0 && <p>No transactions yet.</p>}
-        {transactions.length > 0 && (
-          <table className="table">
-            <thead>
-              <tr>
-                <th>Date</th>
-                <th>From</th>
-                <th>To</th>
-                <th>Amount</th>
-                <th>Type</th>
-                <th>Description</th>
-                <th>Status</th>
-              </tr>
-            </thead>
-            <tbody>
-              {transactions.map((tx) => (
-                <tr
-                  key={tx.id}
-                  className="cursor-pointer hover:bg-[var(--color-mid)]"
-                  onClick={() => setSelectedTx(tx)}
+        <table className="table">
+          <thead>
+            <tr>
+              <th>Date</th>
+              <th>From</th>
+              <th>To</th>
+              <th>Amount</th>
+              <th>Type</th>
+              <th>Description</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            {transactions.map((tx) => (
+              <tr
+                key={tx.id}
+                className="cursor-pointer hover:bg-[var(--color-mid)]"
+                onClick={() => setSelectedTx(tx)}
+              >
+                <td>{tx.date}</td>
+                <td>{tx.from_account}</td>
+                <td>{tx.to_account}</td>
+                <td>${tx.amount}</td>
+                <td>{tx.type}</td>
+                <td>{tx.description}</td>
+                <td
+                  className={
+                    tx.status === "Confirmed"
+                      ? "text-pos"
+                      : tx.status === "Pending"
+                      ? "text-muted"
+                      : "text-neg"
+                  }
                 >
-                  <td>{tx.date}</td>
-                  <td>{tx.from_account}</td>
-                  <td>{tx.to_account}</td>
-                  <td>${tx.amount}</td>
-                  <td>{tx.type}</td>
-                  <td>{tx.description}</td>
-                  <td
-                    className={
-                      tx.status === "Confirmed"
-                        ? "text-pos"
-                        : tx.status === "Pending"
-                        ? "text-muted"
-                        : "text-neg"
-                    }
-                  >
-                    {tx.status}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        )}
+                  {tx.status}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
       </div>
 
       {/* ADD TRANSACTION MODAL */}
@@ -293,21 +288,21 @@ function Finances() {
               </div>
               <div className="flex gap-2">
                 <div className="flex-1">
-                  <label>From</label>
+                  <label>From Account</label>
                   <input
                     type="text"
                     className="border w-full p-1 rounded bg-[var(--color-dark)] text-white"
-                    value={newTx.from_account}
-                    onChange={(e) => setNewTx({ ...newTx, from_account: e.target.value })}
+                    value={newTx.fromAccount}
+                    onChange={(e) => setNewTx({ ...newTx, fromAccount: e.target.value })}
                   />
                 </div>
                 <div className="flex-1">
-                  <label>To</label>
+                  <label>To Account</label>
                   <input
                     type="text"
                     className="border w-full p-1 rounded bg-[var(--color-dark)] text-white"
-                    value={newTx.to_account}
-                    onChange={(e) => setNewTx({ ...newTx, to_account: e.target.value })}
+                    value={newTx.toAccount}
+                    onChange={(e) => setNewTx({ ...newTx, toAccount: e.target.value })}
                   />
                 </div>
               </div>
@@ -355,10 +350,7 @@ function Finances() {
               </div>
             </div>
             <div className="mt-4 flex gap-2">
-              <button
-                className="btn"
-                onClick={addTransaction}
-              >
+              <button className="btn" onClick={addTransaction}>
                 Save
               </button>
               <button
@@ -384,22 +376,14 @@ function Finances() {
           >
             <h3 className="text-xl font-bold mb-2">Transaction Details</h3>
             <p className="text-sm mb-2">
-              <strong>Date:</strong> {selectedTx.date}
-              <br />
-              <strong>From:</strong> {selectedTx.from_account}
-              <br />
-              <strong>To:</strong> {selectedTx.to_account}
-              <br />
-              <strong>Amount:</strong> ${selectedTx.amount}
-              <br />
-              <strong>Type:</strong> {selectedTx.type}
-              <br />
-              <strong>Status:</strong> {selectedTx.status}
-              <br />
+              <strong>Date:</strong> {selectedTx.date}<br />
+              <strong>From:</strong> {selectedTx.from_account}<br />
+              <strong>To:</strong> {selectedTx.to_account}<br />
+              <strong>Amount:</strong> ${selectedTx.amount}<br />
+              <strong>Type:</strong> {selectedTx.type}<br />
+              <strong>Status:</strong> {selectedTx.status}<br />
             </p>
-            <p className="text-xs text-muted mb-4">
-              {selectedTx.description}
-            </p>
+            <p className="text-xs text-muted mb-4">{selectedTx.description}</p>
             <button
               className="btn"
               onClick={() => setSelectedTx(null)}
@@ -424,7 +408,7 @@ function Finances() {
               <>
                 <h4 className="text-xl font-bold mb-2">Total Money In</h4>
                 <p className="text-sm mb-4">
-                  Sum of all deposits into "User Bank": currently ${totalIn}.
+                  Currently ${totalIn}.
                 </p>
               </>
             )}
@@ -432,7 +416,7 @@ function Finances() {
               <>
                 <h4 className="text-xl font-bold mb-2">Total Money Out</h4>
                 <p className="text-sm mb-4">
-                  All withdrawals from "User Bank": currently ${totalOut}.
+                  Currently ${totalOut}.
                 </p>
               </>
             )}
@@ -440,7 +424,7 @@ function Finances() {
               <>
                 <h4 className="text-xl font-bold mb-2">Net Balance</h4>
                 <p className="text-sm mb-4">
-                  ${netBalance} = (Money In) - (Money Out)
+                  ${netBalance} (In minus Out)
                 </p>
               </>
             )}
@@ -463,4 +447,3 @@ function Finances() {
   );
 }
 
-export default Finances;

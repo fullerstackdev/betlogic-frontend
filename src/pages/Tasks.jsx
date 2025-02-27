@@ -1,121 +1,93 @@
-// user/Tasks.jsx
-import React, { useState, useEffect } from "react";
+// src/pages/Tasks.jsx
+import React, { useEffect, useState } from "react";
 
-/**
- * Endpoints used:
- *  GET /api/tasks  => returns an array of tasks
- *  PATCH /api/tasks/:id => update { status }
- *
- * We'll store tasks in 3 columns by status: "todo", "inProgress", "done"
- * Any time we drop a task in a new column, we PATCH the back end.
- */
-
-function Tasks() {
+export default function Tasks() {
   const [tasks, setTasks] = useState({
     todo: [],
     inProgress: [],
-    done: []
+    done: [],
   });
-  const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [dragItem, setDragItem] = useState(null);
 
-  const token = localStorage.getItem("token");
-
-  // Load all tasks from GET /api/tasks, then split by status
   useEffect(() => {
     async function loadTasks() {
       try {
-        setLoading(true);
-        setError("");
-        const res = await fetch(`${import.meta.env.VITE_API_BASE}/api/tasks`, {
+        const base = import.meta.env.VITE_API_BASE;
+        const token = localStorage.getItem("token");
+        const res = await fetch(`${base}/tasks`, {
           headers: {
-            Authorization: `Bearer ${token}`
-          }
+            Authorization: `Bearer ${token}`,
+          },
         });
         if (!res.ok) {
-          const data = await res.json();
-          throw new Error(data.error || "Failed to load tasks");
+          const errData = await res.json().catch(() => ({}));
+          throw new Error(errData.error || "Failed to load tasks");
         }
-        const taskData = await res.json();
-        // group them
-        const grouped = {
-          todo: taskData.filter((t) => t.status === "todo"),
-          inProgress: taskData.filter((t) => t.status === "inProgress"),
-          done: taskData.filter((t) => t.status === "done")
-        };
+        const data = await res.json();
+        // Suppose your server returns an array of tasks, each with {id, title, description, status="todo|inProgress|done"}
+        // We must distribute them into { todo:[], inProgress:[], done:[] } based on their status.
+        const grouped = { todo: [], inProgress: [], done: [] };
+        data.forEach((t) => {
+          if (t.status === "inProgress") {
+            grouped.inProgress.push(t);
+          } else if (t.status === "done") {
+            grouped.done.push(t);
+          } else {
+            grouped.todo.push(t);
+          }
+        });
         setTasks(grouped);
       } catch (err) {
         setError(err.message);
-      } finally {
-        setLoading(false);
       }
     }
     loadTasks();
-  }, [token]);
+  }, []);
 
-  // Drag & drop
-  function onDragStart(e, colName, taskIndex) {
-    setDragItem({ colName, taskIndex });
+  if (error) {
+    return <div className="text-red-400">Error: {error}</div>;
   }
 
+  function onDragStart(e, colIndex, taskIndex) {
+    setDragItem({ colIndex, taskIndex });
+  }
   function onDragOver(e) {
     e.preventDefault();
   }
-
-  async function onDrop(e, newStatus) {
+  function onDrop(e, newColName) {
     e.preventDefault();
     if (!dragItem) return;
-    const { colName, taskIndex } = dragItem;
-    const oldArr = [...tasks[colName]];
-    const item = oldArr.splice(taskIndex, 1)[0];
+    const cols = Object.keys(tasks);
+    const oldColName = cols[dragItem.colIndex];
+    const item = tasks[oldColName][dragItem.taskIndex];
 
-    if (item.status === newStatus) {
-      // no change, just revert in the UI
-      setDragItem(null);
-      return;
-    }
+    // remove from old column
+    const oldArr = [...tasks[oldColName]];
+    oldArr.splice(dragItem.taskIndex, 1);
 
-    // PATCH the task's status
-    try {
-      const res = await fetch(`${import.meta.env.VITE_API_BASE}/api/tasks/${item.id}`, {
-        method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`
-        },
-        body: JSON.stringify({ status: newStatus })
-      });
-      if (!res.ok) {
-        const data = await res.json();
-        throw new Error(data.error || "Failed to update task");
-      }
-      const updated = await res.json();
-      // updated.task => the new item
+    // add to new column
+    const newArr = [...tasks[newColName], item];
 
-      // move the item to the new column in the UI
-      const newArr = [...tasks[newStatus], updated.task];
-      setTasks({
-        ...tasks,
-        [colName]: oldArr,
-        [newStatus]: newArr
-      });
-    } catch (err) {
-      alert(err.message);
-      // revert if needed
-    } finally {
-      setDragItem(null);
-    }
+    setTasks({
+      ...tasks,
+      [oldColName]: oldArr,
+      [newColName]: newArr,
+    });
+    setDragItem(null);
+
+    // Optional: call a PATCH /api/tasks/:id to update the status in DB
+    // e.g.:
+    // patchTaskStatus(item.id, newColName === 'inProgress' ? 'inProgress' : newColName );
   }
 
-  if (loading) return <p>Loading tasks...</p>;
-  if (error) return <p style={{ color: "red" }}>{error}</p>;
+  const cols = Object.entries(tasks); // [["todo", [...]], ["inProgress", [...]], ["done", [...]]]
 
   return (
     <div>
       <h2 className="text-2xl font-bold mb-4">Tasks (Kanban)</h2>
       <div className="grid grid-cols-3 gap-4">
-        {Object.entries(tasks).map(([colName, items]) => (
+        {cols.map(([colName, items], colIndex) => (
           <div
             key={colName}
             className="card min-h-[300px]"
@@ -134,7 +106,7 @@ function Tasks() {
                 key={task.id}
                 className="bg-panel rounded p-3 mb-2 shadow cursor-move"
                 draggable
-                onDragStart={(e) => onDragStart(e, colName, taskIndex)}
+                onDragStart={(e) => onDragStart(e, colIndex, taskIndex)}
               >
                 <div className="font-semibold">{task.title}</div>
                 <div className="text-sm">{task.description}</div>
@@ -149,5 +121,3 @@ function Tasks() {
     </div>
   );
 }
-
-export default Tasks;
