@@ -9,6 +9,7 @@ import LogoutPage from "./pages/Auth/LogoutPage";
 import FinancesPage from "./pages/Finances/FinancesPage";
 import PromotionsPage from "./pages/Promotions/PromotionsPage";
 import PromotionDetailPage from "./pages/Promotions/PromotionDetailPage";
+import TasksPage from "./pages/Tasks/TasksPage";
 
 function App() {
   return (
@@ -21,7 +22,8 @@ function App() {
       <Route path="/auth/logout" element={<LogoutPage />} />
       <Route path="/finances" element={<FinancesPage />} />
       <Route path="/promotions" element={<PromotionsPage />} />
-<Route path="/promotions/:promoId" element={<PromotionDetailPage />} />
+      <Route path="/promotions/:promoId" element={<PromotionDetailPage />} />
+      <Route path="/tasks" element={<TasksPage />} />
       <Route path="*" element={<div>Not Found</div>} />
     </Routes>
   );
