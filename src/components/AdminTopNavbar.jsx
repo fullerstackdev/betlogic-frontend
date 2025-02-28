@@ -1,95 +1,137 @@
-// src/components/AdminTopNavbar.jsx
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { FiMenu, FiMessageSquare, FiBell, FiChevronDown } from "react-icons/fi";
-import { useNavigate } from "react-router-dom";
-import adminAvatar from "../assets/images/users/user2.jpg";
+
+// Possibly fetch some notifications for the admin?
 
 function AdminTopNavbar({ onToggleSidebar }) {
-  const navigate = useNavigate();
+  const [notifOpen, setNotifOpen] = useState(false);
+  const [notifications, setNotifications] = useState([]);
+  const [msgsOpen, setMsgsOpen] = useState(false);
+  const [messages, setMessages] = useState([]);
   const [profileOpen, setProfileOpen] = useState(false);
 
-  function handleLogout() {
-    localStorage.removeItem("token");
-    localStorage.removeItem("role");
-    navigate("/auth/login");
-  }
+  // Example approach: fetch notifications from normal /api/notifications? 
+  // or an admin endpoint if you have it.
+
+  // We'll keep it minimal. If you have no admin notifications, skip it.
 
   return (
     <div className="relative z-[999] flex items-center justify-between h-12 px-4 bg-[var(--color-dark)] border-b border-[var(--color-border)] text-[var(--color-text)]">
-      {/* LEFT SECTION: Sidebar Toggle + Search */}
-      <div className="flex items-center">
+      <div>
         <button
           onClick={onToggleSidebar}
           className="mr-4 hover:text-[var(--color-primary)]"
         >
           <FiMenu size={20} />
         </button>
-        <div>
-          <input
-            type="text"
-            placeholder="Search & Enter"
-            className="
-              bg-[var(--color-panel)]
-              border border-[var(--color-border)]
-              rounded
-              px-2 py-1
-              text-sm
-              placeholder:text-gray-400
-              focus:outline-none
-              focus:border-[var(--color-primary)]
-            "
-          />
-        </div>
+        {/* Could put a search bar or something here if desired */}
       </div>
 
-      {/* RIGHT SECTION: Icons + Profile */}
       <div className="flex items-center gap-4">
-        {/* Messages */}
-        <div className="relative">
-          <button className="hover:text-[var(--color-primary)]">
-            <FiMessageSquare size={20} />
-          </button>
-          <span
-            className="
-              absolute top-0 right-0 -mt-1 -mr-2
-              bg-[var(--color-accent)]
-              text-white
-              text-xs
-              rounded-full
-              px-1
-            "
-          >
-            5
-          </span>
-        </div>
-
-        {/* Notifications */}
-        <div className="relative">
-          <button className="hover:text-[var(--color-primary)]">
-            <FiBell size={20} />
-          </button>
-          <span
-            className="
-              absolute top-0 right-0 -mt-1 -mr-2
-              bg-red-600
-              text-white
-              text-xs
-              rounded-full
-              px-1
-            "
-          >
-            2
-          </span>
-        </div>
-
-        {/* Profile Dropdown */}
+        {/* MESSAGES */}
         <div className="relative">
           <button
-            onClick={() => setProfileOpen(!profileOpen)}
+            className="hover:text-[var(--color-primary)]"
+            onClick={() => {
+              setMsgsOpen(!msgsOpen);
+              setNotifOpen(false);
+              setProfileOpen(false);
+            }}
+          >
+            <FiMessageSquare size={20} />
+          </button>
+          {/* If you want a count badge:
+              <span className="absolute top-0 right-0 -mt-1 -mr-2 bg-red-600 ...">2</span>
+          */}
+          {msgsOpen && (
+            <div
+              className="
+                absolute right-0 top-8
+                w-64
+                bg-white
+                text-black
+                p-2
+                rounded
+                shadow-md
+                z-[9999]
+              "
+            >
+              <h4 className="font-bold mb-2">Admin Quick Messages</h4>
+              {messages.length === 0 ? (
+                <p className="text-sm text-gray-800">No messages found</p>
+              ) : (
+                messages.map((m) => (
+                  <div key={m.id} className="border-b pb-2 mb-2">
+                    <p className="font-semibold">Thread #{m.thread_id}</p>
+                    <p className="text-xs">{m.snippet}</p>
+                  </div>
+                ))
+              )}
+              <button
+                className="text-blue-600 text-sm hover:underline"
+                onClick={() => {
+                  window.location.href = "/admin/messages";
+                  setMsgsOpen(false);
+                }}
+              >
+                View all messages
+              </button>
+            </div>
+          )}
+        </div>
+
+        {/* NOTIFICATIONS */}
+        <div className="relative">
+          <button
+            className="hover:text-[var(--color-primary)]"
+            onClick={() => {
+              setNotifOpen(!notifOpen);
+              setMsgsOpen(false);
+              setProfileOpen(false);
+            }}
+          >
+            <FiBell size={20} />
+          </button>
+          {notifOpen && (
+            <div
+              className="
+                absolute right-0 top-8
+                w-64
+                bg-white
+                text-black
+                p-2
+                rounded
+                shadow-md
+                z-[9999]
+              "
+            >
+              <h4 className="font-bold mb-2">Notifications</h4>
+              {notifications.length === 0 ? (
+                <p className="text-sm text-gray-800">No notifications found</p>
+              ) : (
+                notifications.map((n) => (
+                  <div key={n.id} className="border-b pb-2 mb-2">
+                    <p className="font-semibold">{n.title}</p>
+                    <p className="text-xs">{n.body}</p>
+                  </div>
+                ))
+              )}
+            </div>
+          )}
+        </div>
+
+        {/* ADMIN AVATAR / LOGOUT */}
+        <div className="relative">
+          <button
+            onClick={() => {
+              setProfileOpen(!profileOpen);
+              setNotifOpen(false);
+              setMsgsOpen(false);
+            }}
             className="flex items-center hover:text-[var(--color-primary)]"
           >
             <img
-              src={adminAvatar}
+              src="https://via.placeholder.com/40x40?text=Admin"
               alt="Admin Avatar"
               className="rounded-full h-8 w-8 mr-2"
             />
@@ -97,11 +139,10 @@ function AdminTopNavbar({ onToggleSidebar }) {
               Admin <FiChevronDown className="ml-1" />
             </span>
           </button>
-
           {profileOpen && (
             <div
               className="
-                absolute top-10 right-0
+                absolute right-0 top-8
                 bg-white
                 text-black
                 p-2
@@ -111,15 +152,14 @@ function AdminTopNavbar({ onToggleSidebar }) {
                 w-40
               "
             >
-              <button className="block w-full text-left px-2 py-1 hover:bg-gray-200">
-                Profile
-              </button>
-              <button className="block w-full text-left px-2 py-1 hover:bg-gray-200">
-                Settings
-              </button>
               <button
-                className="block w-full text-left px-2 py-1 hover:bg-gray-200 text-red-600"
-                onClick={handleLogout}
+                className="block w-full text-left px-2 py-1 hover:bg-gray-200"
+                onClick={() => {
+                  // remove token from localStorage, etc.
+                  localStorage.removeItem("token");
+                  localStorage.removeItem("role");
+                  window.location.href = "/auth/login";
+                }}
               >
                 Logout
               </button>

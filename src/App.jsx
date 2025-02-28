@@ -28,7 +28,7 @@ import UserProfile from "./pages/UserProfile";
 import Notifications from "./pages/Notifications";
 
 // ADMIN PAGES (Protected)
-import AdminIndex from "./pages/admin/AdminIndex"; // NEW: a default admin page
+import AdminDashboard from "./pages/admin/AdminDashboard"; // NEW: a default admin page
 import ManageUsersPage from "./pages/admin/ManageUsersPage";
 import AdminFinancesPage from "./pages/admin/AdminFinancesPage";
 import AdminPromotionsPage from "./pages/admin/AdminPromotionsPage";
@@ -79,7 +79,7 @@ function App() {
       <Route element={<RequireAuth allowedRoles={["admin", "superadmin"]} />}>
         <Route path="/admin" element={<AdminLayout />}>
           {/* *** CRITICAL: Add a default index route so /admin is not blank *** */}
-          <Route index element={<AdminIndex />} />
+          <Route index element={<AdminDashboard />} />
 
           <Route path="users" element={<ManageUsersPage />} />
           <Route path="finances" element={<AdminFinancesPage />} />

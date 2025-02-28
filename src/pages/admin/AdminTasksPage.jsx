@@ -1,8 +1,17 @@
 import React, { useEffect, useState } from "react";
 
+/**
+ * AdminTasksPage
+ * - fetches all tasks
+ * - can create new tasks for any user
+ * - shows them in simple columns by status
+ */
+
 function AdminTasksPage() {
-  const [tasks, setTasks] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [tasks, setTasks] = useState([]); // array of raw tasks from DB
+  const [showCreateModal, setShowCreateModal] = useState(false);
   const [newTask, setNewTask] = useState({
     user_id: "",
     title: "",
@@ -10,42 +19,49 @@ function AdminTasksPage() {
     status: "todo"
   });
 
+  const token = localStorage.getItem("token");
+  const base = import.meta.env.VITE_API_BASE;
+
   async function fetchTasks() {
     try {
-      const token = localStorage.getItem("token");
-      const res = await fetch(import.meta.env.VITE_API_BASE + "/admin/tasks", {
-        headers: {
-          Authorization: `Bearer ${token}`
-        }
+      setLoading(true);
+      setError("");
+      const res = await fetch(`${base}/admin/tasks`, {
+        headers: { Authorization: `Bearer ${token}` }
       });
       const data = await res.json();
       if (!res.ok) {
-        throw new Error(data.error || "Failed to fetch tasks");
+        throw new Error(data.error || "Failed to fetch admin tasks");
       }
       setTasks(data);
     } catch (err) {
       setError(err.message);
+    } finally {
+      setLoading(false);
     }
   }
+
+  useEffect(() => {
+    fetchTasks();
+  }, []);
 
   async function createTask(e) {
     e.preventDefault();
     setError("");
     try {
-      const token = localStorage.getItem("token");
-      const body = newTask;
-      const res = await fetch(import.meta.env.VITE_API_BASE + "/admin/tasks", {
+      const res = await fetch(`${base}/admin/tasks`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`
         },
-        body: JSON.stringify(body)
+        body: JSON.stringify(newTask)
       });
       const data = await res.json();
       if (!res.ok) {
         throw new Error(data.error || "Failed to create task");
       }
+      setShowCreateModal(false);
       setNewTask({
         user_id: "",
         title: "",
@@ -58,76 +74,147 @@ function AdminTasksPage() {
     }
   }
 
-  useEffect(() => {
-    fetchTasks();
-  }, []);
+  // Let's group tasks by status to do a simple 3-column layout
+  const grouped = { todo: [], inProgress: [], done: [], other: [] };
+  tasks.forEach(t => {
+    if (t.status === "todo") grouped.todo.push(t);
+    else if (t.status === "inProgress") grouped.inProgress.push(t);
+    else if (t.status === "done") grouped.done.push(t);
+    else grouped.other.push(t);
+  });
+
+  if (loading) return <div>Loading admin tasks...</div>;
+  if (error) return <div style={{ color: "red" }}>{error}</div>;
 
   return (
-    <div>
-      <h2>Admin Tasks</h2>
-      {error && <p style={{ color: "red" }}>{error}</p>}
+    <div className="space-y-4">
+      <h2 className="text-2xl font-bold">Admin Tasks</h2>
+      <button className="btn" onClick={() => setShowCreateModal(true)}>
+        + Create Task
+      </button>
 
-      <form onSubmit={createTask} style={{ border: "1px solid #ccc", padding: "1rem", marginBottom: "1rem" }}>
-        <h3>Create Task for Any User</h3>
-        <div>
-          <label>User ID:</label>
-          <input
-            type="number"
-            value={newTask.user_id}
-            onChange={e => setNewTask({ ...newTask, user_id: e.target.value })}
-          />
-        </div>
-        <div>
-          <label>Title:</label>
-          <input
-            type="text"
-            value={newTask.title}
-            onChange={e => setNewTask({ ...newTask, title: e.target.value })}
-          />
-        </div>
-        <div>
-          <label>Description:</label>
-          <input
-            type="text"
-            value={newTask.description}
-            onChange={e => setNewTask({ ...newTask, description: e.target.value })}
-          />
-        </div>
-        <div>
-          <label>Status:</label>
-          <input
-            type="text"
-            value={newTask.status}
-            onChange={e => setNewTask({ ...newTask, status: e.target.value })}
-          />
-        </div>
-        <button type="submit">Create</button>
-      </form>
-
-      <table border="1" cellPadding="5" style={{ width: "100%" }}>
-        <thead>
-          <tr>
-            <th>ID</th>
-            <th>User ID</th>
-            <th>Title</th>
-            <th>Description</th>
-            <th>Status</th>
-            <th>Created By</th>
-          </tr>
-        </thead>
-        <tbody>
-          {tasks.map(t => (
-            <tr key={t.id}>
-              <td>{t.id}</td>
-              <td>{t.user_id}</td>
-              <td>{t.title}</td>
-              <td>{t.description}</td>
-              <td>{t.status}</td>
-              <td>{t.created_by}</td>
-            </tr>
+      <div className="grid grid-cols-4 gap-4 mt-4">
+        {/* Column for todo */}
+        <div className="card min-h-[300px]">
+          <h3 className="text-lg font-bold mb-2 uppercase">To Do</h3>
+          {grouped.todo.map(t => (
+            <div key={t.id} className="bg-panel p-2 mb-2 rounded text-sm">
+              <p className="font-semibold">{t.title}</p>
+              <p className="text-xs text-muted">
+                User #{t.user_id} | {t.description}
+              </p>
+            </div>
           ))}
-        </tbody>
-      </table>
+          {grouped.todo.length === 0 && <p>No tasks in To Do</p>}
+        </div>
+        {/* inProgress */}
+        <div className="card min-h-[300px]">
+          <h3 className="text-lg font-bold mb-2 uppercase">In Progress</h3>
+          {grouped.inProgress.map(t => (
+            <div key={t.id} className="bg-panel p-2 mb-2 rounded text-sm">
+              <p className="font-semibold">{t.title}</p>
+              <p className="text-xs text-muted">
+                User #{t.user_id} | {t.description}
+              </p>
+            </div>
+          ))}
+          {grouped.inProgress.length === 0 && <p>No tasks in progress</p>}
+        </div>
+        {/* done */}
+        <div className="card min-h-[300px]">
+          <h3 className="text-lg font-bold mb-2 uppercase">Done</h3>
+          {grouped.done.map(t => (
+            <div key={t.id} className="bg-panel p-2 mb-2 rounded text-sm">
+              <p className="font-semibold">{t.title}</p>
+              <p className="text-xs text-muted">
+                User #{t.user_id} | {t.description}
+              </p>
+            </div>
+          ))}
+          {grouped.done.length === 0 && <p>No tasks done</p>}
+        </div>
+        {/* other */}
+        <div className="card min-h-[300px]">
+          <h3 className="text-lg font-bold mb-2 uppercase">Other Status</h3>
+          {grouped.other.map(t => (
+            <div key={t.id} className="bg-panel p-2 mb-2 rounded text-sm">
+              <p className="font-semibold">{t.title}</p>
+              <p className="text-xs text-muted">
+                User #{t.user_id} | status={t.status}
+              </p>
+              <p className="text-xs text-muted">{t.description}</p>
+            </div>
+          ))}
+          {grouped.other.length === 0 && <p>No tasks here</p>}
+        </div>
+      </div>
+
+      {/* CREATE TASK MODAL */}
+      {showCreateModal && (
+        <div
+          className="modal-backdrop"
+          onClick={() => setShowCreateModal(false)}
+        >
+          <div
+            className="modal-content w-80"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h3 className="text-xl font-bold mb-2">Create Task</h3>
+            <form onSubmit={createTask} className="space-y-2">
+              <div>
+                <label>User ID</label>
+                <input
+                  type="number"
+                  className="border w-full p-1 rounded bg-[var(--color-dark)] text-white"
+                  required
+                  value={newTask.user_id}
+                  onChange={(e) => setNewTask({ ...newTask, user_id: e.target.value })}
+                />
+              </div>
+              <div>
+                <label>Title</label>
+                <input
+                  type="text"
+                  className="border w-full p-1 rounded bg-[var(--color-dark)] text-white"
+                  required
+                  value={newTask.title}
+                  onChange={(e) => setNewTask({ ...newTask, title: e.target.value })}
+                />
+              </div>
+              <div>
+                <label>Description</label>
+                <textarea
+                  className="border w-full p-1 rounded bg-[var(--color-dark)] text-white"
+                  value={newTask.description}
+                  onChange={(e) => setNewTask({ ...newTask, description: e.target.value })}
+                />
+              </div>
+              <div>
+                <label>Status</label>
+                <select
+                  className="border w-full p-1 rounded bg-[var(--color-dark)] text-white"
+                  value={newTask.status}
+                  onChange={(e) => setNewTask({ ...newTask, status: e.target.value })}
+                >
+                  <option value="todo">To Do</option>
+                  <option value="inProgress">In Progress</option>
+                  <option value="done">Done</option>
+                </select>
+              </div>
+              <div className="mt-4 flex gap-2">
+                <button type="submit" className="btn">Create</button>
+                <button
+                  type="button"
+                  className="btn bg-[var(--color-mid)]"
+                  onClick={() => setShowCreateModal(false)}
+                >
+                  Cancel
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
