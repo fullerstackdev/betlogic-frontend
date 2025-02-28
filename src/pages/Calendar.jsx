@@ -10,8 +10,7 @@ const localizer = dateFnsLocalizer({
   format,
   parse,
   startOfWeek,
-  getDay,
-  locales,
+  getDay
 });
 
 export default function CalendarPage() {
