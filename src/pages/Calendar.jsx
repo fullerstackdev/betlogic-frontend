@@ -6,11 +6,6 @@ import { parse, startOfWeek, getDay, format } from "date-fns";
 import "react-big-calendar/lib/css/react-big-calendar.css"; // import default styles
 // you can custom style it further in your tailwind or additional CSS
 
-const locales = {
-  // optional if you want multiple languages
-  enUS: require("date-fns/locale/en-US"),
-};
-
 const localizer = dateFnsLocalizer({
   format,
   parse,
