@@ -72,6 +72,9 @@ function App() {
           <Route path="/calendar" element={<Calendar />} />
           <Route path="/profile" element={<UserProfile />} />
           <Route path="/notifications" element={<Notifications />} />
+
+           {/* NEW: Onboarding Route */}
+          <Route path="/onboarding" element={<OnboardingPage />} />
         </Route>
       </Route>
 
