@@ -48,10 +48,6 @@ import RequireAuth from "./components/RequireAuth";
 function App() {
   return (
     <Routes>
-      <Route path="/" element={<Navigate to="/auth/login" replace />} />
-
-
-      
       {/* PUBLIC AUTH ROUTES */}
       <Route element={<AuthLayout />}>
         <Route path="/auth/login" element={<LoginPage />} />
@@ -63,11 +59,7 @@ function App() {
       </Route>
 
       {/* PROTECTED USER ROUTES */}
-      <Route
-        element={
-          <RequireAuth allowedRoles={["user", "admin", "superadmin"]} />
-        }
-      >
+      <Route element={<RequireAuth allowedRoles={["user", "admin", "superadmin"]} />}>
         <Route element={<MainLayout />}>
           <Route path="/" element={<Dashboard />} />
           <Route path="/finances" element={<Finances />} />
@@ -79,8 +71,6 @@ function App() {
           <Route path="/calendar" element={<Calendar />} />
           <Route path="/profile" element={<UserProfile />} />
           <Route path="/notifications" element={<Notifications />} />
-
-           {/* NEW: Onboarding Route */}
           <Route path="/onboarding" element={<OnboardingPage />} />
         </Route>
       </Route>
@@ -88,20 +78,19 @@ function App() {
       {/* PROTECTED ADMIN ROUTES */}
       <Route element={<RequireAuth allowedRoles={["admin", "superadmin"]} />}>
         <Route path="/admin" element={<AdminLayout />}>
-          {/* *** CRITICAL: Add a default index route so /admin is not blank *** */}
           <Route index element={<AdminDashboard />} />
-
           <Route path="users" element={<ManageUsersPage />} />
           <Route path="finances" element={<AdminFinancesPage />} />
           <Route path="promotions" element={<AdminPromotionsPage />} />
           <Route path="tasks" element={<AdminTasksPage />} />
           <Route path="bets" element={<AdminBetsPage />} />
           <Route path="messages" element={<AdminMessagesPage />} />
+          <Route path="calendar" element={<Calendar />} />
         </Route>
       </Route>
 
-      {/* CATCH-ALL */}
-      <Route path="*" element={<NotFound />} />
+      {/* CATCH-ALL Redirect */}
+      <Route path="*" element={<Navigate to="/auth/login" replace />} />
     </Routes>
   );
 }
