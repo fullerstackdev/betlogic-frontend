@@ -19,6 +19,7 @@ function LoginPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(form),
       });
+
       const data = await res.json();
       setLoading(false);
 
@@ -29,7 +30,13 @@ function LoginPage() {
       localStorage.setItem("firstName", data.firstName || "");
       localStorage.setItem("lastName", data.lastName || "");
 
-      navigate(data.role === "admin" || data.role === "superadmin" ? "/admin" : "/");
+      navigate(
+        data.role === "admin" || data.role === "superadmin"
+          ? "/admin"
+          : data.onboardingCompleted
+            ? "/"
+            : "/onboarding"
+      );
     } catch (err) {
       setLoading(false);
       setError(err.message);

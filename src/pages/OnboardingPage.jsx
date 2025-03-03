@@ -13,6 +13,7 @@ const OnboardingPage = () => {
     sportsbooks_used: [],
     calendar_availability: { days: [], times: [] },
     completed_promotions: [],
+    referral_name: '',
   });
 
   const handleChange = (e) => {
@@ -43,25 +44,27 @@ const OnboardingPage = () => {
   };
 
   return (
-    <div className="max-w-2xl mx-auto p-6 bg-gray-800 text-white rounded-lg shadow-md">
-      <h1 className="text-2xl mb-4">User Onboarding</h1>
+    <div className="max-w-xl mx-auto p-8 bg-gray-800 text-white rounded-lg shadow-lg">
+      <h1 className="text-2xl font-bold mb-6 text-center">User Onboarding</h1>
 
       {step === 1 && (
-        <div>
+        <div className="space-y-4">
           <label>Birthday:</label>
           <input
             type="date"
             name="birthday"
             value={form.birthday}
             onChange={handleChange}
-            className="p-2 w-full rounded bg-gray-700 mt-2"
+            className="p-3 w-full rounded bg-gray-700 border border-gray-600"
           />
-          <button className="mt-4 btn" onClick={() => setStep(2)}>Next</button>
+          <button className="w-full py-3 bg-blue-600 hover:bg-blue-700 rounded" onClick={() => setStep(2)}>
+            Next
+          </button>
         </div>
       )}
 
       {step === 2 && (
-        <div>
+        <div className="space-y-4">
           <label className="flex items-center">
             <input
               type="checkbox"
@@ -76,7 +79,7 @@ const OnboardingPage = () => {
             name="primary_bank"
             value={form.primary_bank}
             onChange={handleChange}
-            className="p-2 w-full rounded bg-gray-700 mt-4"
+            className="p-3 w-full rounded bg-gray-700 border border-gray-600"
           >
             <option value="">Select Your Bank</option>
             <option value="Chase">Chase</option>
@@ -84,12 +87,14 @@ const OnboardingPage = () => {
             <option value="Wells Fargo">Wells Fargo</option>
             <option value="Other">Other</option>
           </select>
-          <button className="mt-4 btn" onClick={() => setStep(3)}>Next</button>
+          <button className="w-full py-3 bg-blue-600 hover:bg-blue-700 rounded" onClick={() => setStep(3)}>
+            Next
+          </button>
         </div>
       )}
 
       {step === 3 && (
-        <div>
+        <div className="space-y-4">
           <label className="flex items-center">
             <input
               type="checkbox"
@@ -108,7 +113,7 @@ const OnboardingPage = () => {
               onChange={(e) =>
                 setForm({ ...form, sportsbooks_used: [...e.target.selectedOptions].map(o => o.value) })
               }
-              className="p-2 w-full rounded bg-gray-700 mt-4"
+              className="p-3 w-full rounded bg-gray-700 border border-gray-600"
             >
               <option value="DraftKings">DraftKings</option>
               <option value="FanDuel">FanDuel</option>
@@ -116,22 +121,42 @@ const OnboardingPage = () => {
               <option value="Other">Other</option>
             </select>
           )}
-          <button className="mt-4 btn" onClick={() => setStep(4)}>Next</button>
+          <button className="w-full py-3 bg-blue-600 hover:bg-blue-700 rounded" onClick={() => setStep(4)}>
+            Next
+          </button>
         </div>
       )}
 
       {step === 4 && (
-        <div>
-          <p>Select your calendar availability (example simplified):</p>
+        <div className="space-y-4">
+          <label>Calendar availability (e.g., Monday 10:00-12:00):</label>
           <input
             type="text"
-            placeholder="e.g., Monday 10:00-12:00"
-            className="p-2 w-full rounded bg-gray-700 mt-2"
+            className="p-3 w-full rounded bg-gray-700 border border-gray-600"
             onChange={(e) =>
               setForm({ ...form, calendar_availability: { days: ['Monday'], times: [e.target.value] } })
             }
           />
-          <button className="mt-4 btn" onClick={handleSubmit}>Complete Onboarding</button>
+          <button className="w-full py-3 bg-blue-600 hover:bg-blue-700 rounded" onClick={() => setStep(5)}>
+            Next
+          </button>
+        </div>
+      )}
+
+      {step === 5 && (
+        <div className="space-y-4">
+          <label>Referral Name (Optional):</label>
+          <input
+            type="text"
+            name="referral_name"
+            placeholder="Enter referral name if applicable"
+            value={form.referral_name}
+            onChange={handleChange}
+            className="p-3 w-full rounded bg-gray-700 border border-gray-600"
+          />
+          <button className="w-full py-3 bg-green-600 hover:bg-green-700 rounded" onClick={handleSubmit}>
+            Complete Onboarding
+          </button>
         </div>
       )}
     </div>
