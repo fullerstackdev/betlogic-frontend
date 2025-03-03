@@ -1,35 +1,18 @@
-// src/layouts/AuthLayout.jsx
 import React from "react";
 import { Outlet } from "react-router-dom";
 
-function AuthLayout() {
-  // no forced redirect 
+const AuthLayout = () => {
   return (
-    <div
-      className="
-        min-h-screen w-full
-        bg-gray-900
-        text-white
-        flex items-center justify-center
-        p-4
-      "
-    >
-      <div
-        className="
-          bg-black/60
-          backdrop-blur-sm
-          rounded-lg
-          w-full
-          max-w-3xl
-          p-6
-          flex
-        "
-      >
+    <div className="min-h-screen bg-gray-900 flex items-center justify-center">
+      <div className="w-full max-w-md p-8 bg-gray-800 rounded-lg shadow-lg">
+        <h2 className="text-center text-3xl font-bold text-white mb-6">
+          Welcome to BetLogic
+        </h2>
         <Outlet />
       </div>
     </div>
   );
-}
+};
 
 export default AuthLayout;
 
