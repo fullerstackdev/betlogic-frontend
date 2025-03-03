@@ -7,6 +7,9 @@ import AuthLayout from "./layouts/AuthLayout";
 import MainLayout from "./layouts/MainLayout";
 import AdminLayout from "./layouts/AdminLayout";
 
+// Onboarding
+import OnboardingPage from "./pages/OnboardingPage";
+
 // AUTH PAGES
 import LoginPage from "./pages/Auth/LoginPage";
 import RegisterPage from "./pages/Auth/RegisterPage";
