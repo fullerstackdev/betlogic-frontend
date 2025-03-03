@@ -1,29 +1,32 @@
-// src/pages/Auth/VerifyPage.jsx
 import React, { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, Link } from "react-router-dom";
 
 function VerifyPage() {
   const { token } = useParams();
-  const [message, setMessage] = useState("Verifying...");
+  const [message, setMessage] = useState("");
   const [error, setError] = useState("");
+  const base = import.meta.env.VITE_API_BASE;
 
   useEffect(() => {
-    async function verify() {
-      try {
-        const base = import.meta.env.VITE_API_BASE;
-        const res = await fetch(`${base}/auth/verify/${token}`);
-        const data = await res.json();
-        if (!res.ok) throw new Error(data.error || "Verify failed");
-        setMessage(data.message || "Email verified. You may login now.");
-      } catch (err) {
-        setError(err.message);
-      }
-    }
-    verify();
+    fetch(`${base}/auth/verify/${token}`)
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.error) throw new Error(data.error);
+        setMessage(data.message);
+      })
+      .catch((err) => setError(err.message));
   }, [token]);
 
-  if (error) return <p className="text-red-400">{error}</p>;
-  return <p>{message}</p>;
+  return (
+    <div className="text-center space-y-4">
+      <h2 className="text-2xl text-white">Email Verification</h2>
+      {message && <p className="text-green-400">{message}</p>}
+      {error && <p className="text-red-500">{error}</p>}
+      <Link to="/auth/login" className="text-blue-400 hover:text-blue-200 font-semibold">
+        Proceed to Login
+      </Link>
+    </div>
+  );
 }
 
 export default VerifyPage;

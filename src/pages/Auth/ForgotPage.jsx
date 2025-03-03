@@ -1,48 +1,63 @@
 import React, { useState } from "react";
+import { useSearchParams, useNavigate } from "react-router-dom";
 
-function ForgotPage() {
-  const [email, setEmail] = useState("");
+function ResetPage() {
+  const [searchParams] = useSearchParams();
+  const token = searchParams.get("token");
+  const navigate = useNavigate();
+  const [newPassword, setNewPassword] = useState("");
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [success, setSuccess] = useState("");
 
-  async function handleSubmit(e) {
+  const handleSubmit = async (e) => {
     e.preventDefault();
+    setLoading(true);
     setError("");
-    setSuccess("");
+
     try {
-      const res = await fetch(import.meta.env.VITE_API_BASE + "/auth/forgot", {
+      const base = import.meta.env.VITE_API_BASE;
+      const res = await fetch(`${base}/auth/reset`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email })
+        body: JSON.stringify({ token, newPassword }),
       });
+
       const data = await res.json();
-      if (!res.ok) {
-        throw new Error(data.error || "Failed to request reset");
-      }
-      setSuccess(data.message);
+      setLoading(false);
+
+      if (!res.ok) throw new Error(data.error || "Password reset failed");
+
+      alert("Password reset successfully. Please log in.");
+      navigate("/auth/login");
     } catch (err) {
+      setLoading(false);
       setError(err.message);
     }
-  }
+  };
 
   return (
-    <div style={{ maxWidth: 400, margin: "auto" }}>
-      <h2>Forgot Password</h2>
-      {error && <p style={{ color: "red" }}>{error}</p>}
-      {success && <p style={{ color: "green" }}>{success}</p>}
-      <form onSubmit={handleSubmit}>
-        <div>
-          <label>Email</label>
-          <input
-            type="email"
-            value={email}
-            onChange={e => setEmail(e.target.value)}
-          />
-        </div>
-        <button type="submit">Send Reset Link</button>
-      </form>
-    </div>
+    <form onSubmit={handleSubmit} className="space-y-4">
+      <h2 className="text-white text-2xl">Reset Your Password</h2>
+      {error && <div className="text-red-500 text-sm">{error}</div>}
+
+      <input
+        type="password"
+        placeholder="New Password"
+        className="w-full p-3 rounded bg-gray-700 text-white border border-gray-600"
+        value={newPassword}
+        onChange={(e) => setNewPassword(e.target.value)}
+        required
+      />
+
+      <button
+        type="submit"
+        className="w-full py-3 bg-blue-600 hover:bg-blue-700 rounded text-white font-semibold transition-colors"
+        disabled={loading}
+      >
+        {loading ? "Resetting..." : "Reset Password"}
+      </button>
+    </form>
   );
 }
 
-export default ForgotPage;
+export default ResetPage;
