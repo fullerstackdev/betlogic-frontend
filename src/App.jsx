@@ -1,6 +1,6 @@
 // src/App.jsx
 import React from "react";
-import { Routes, Route } from "react-router-dom";
+import { Routes, Route, Navigate } from "react-router-dom";
 
 // LAYOUTS
 import AuthLayout from "./layouts/AuthLayout";
@@ -48,6 +48,10 @@ import RequireAuth from "./components/RequireAuth";
 function App() {
   return (
     <Routes>
+      <Route path="/" element={<Navigate to="/auth/login" replace />} />
+
+
+      
       {/* PUBLIC AUTH ROUTES */}
       <Route element={<AuthLayout />}>
         <Route path="/auth/login" element={<LoginPage />} />
